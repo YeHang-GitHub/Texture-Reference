@@ -10,18 +10,25 @@
             font-family: Arial, sans-serif;
             background-color: #222;
             color: white;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
         #file-tree {
             width: 300px;
             padding: 10px;
             border-right: 2px solid #444;
             overflow-y: auto;
+            flex-shrink: 0;
         }
         #gallery {
             flex-grow: 1;
             padding: 10px;
-            column-count: 4; /* 创建 4 列的瀑布流布局 */
-            column-gap: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            overflow-y: auto;
+            height: 100vh;
         }
         .folder {
             cursor: pointer;
@@ -37,10 +44,12 @@
             display: none;
         }
         .thumbnail {
-            width: 100%; /* 让图片填充列宽，保持原始比例 */
-            margin-bottom: 10px;
-            break-inside: avoid; /* 避免跨列 */
+            max-width: 100%;
+            height: auto;
+            max-height: 250px;
+            cursor: pointer;
             border-radius: 5px;
+            display: block;
         }
     </style>
 </head>
@@ -52,7 +61,7 @@
     <script>
         const repoOwner = "YeHang-GitHub";
         const repoName = "Texture-Reference-Photo";
-        const branch = "main";  
+        const branch = "main";
         const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
 
         async function fetchDirectory(path = "") {
@@ -63,11 +72,11 @@
 
         async function createFileTree(container, path = "", level = 0) {
             const files = await fetchDirectory(path);
-
+            
             files.forEach(file => {
                 const item = document.createElement("div");
                 item.style.marginLeft = `${level * 15}px`;
-
+                
                 if (file.type === "dir") {
                     item.classList.add("folder");
                     item.textContent = "📂 " + file.name;
@@ -81,26 +90,25 @@
                             await createFileTree(subContainer, file.path, level + 1);
                         }
                         subContainer.classList.toggle("hidden");
-                        await displayFolderImages(file.path); // 点击文件夹时显示图片
+                        displayImagesInFolder(file.path);
                     };
-
+                    
                     container.appendChild(item);
                     container.appendChild(subContainer);
                 }
             });
         }
 
-        async function displayFolderImages(folderPath) {
+        async function displayImagesInFolder(path) {
             const gallery = document.getElementById("gallery");
-            gallery.innerHTML = "";  
-
-            const files = await fetchDirectory(folderPath);
+            gallery.innerHTML = "";
+            const files = await fetchDirectory(path);
+            
             files.forEach(file => {
                 if (file.name.endsWith(".jpg")) {
                     const img = document.createElement("img");
-                    img.src = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${file.path}`;
+                    img.src = file.download_url;
                     img.classList.add("thumbnail");
-                    img.onerror = () => console.error("无法加载图片: ", img.src);
                     gallery.appendChild(img);
                 }
             });

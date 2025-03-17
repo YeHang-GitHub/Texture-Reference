@@ -86,7 +86,7 @@
 
                     container.appendChild(item);
                     container.appendChild(subContainer);
-                } else if (file.name.endsWith(".avif")) {
+                } else if (file.name.endsWith(".jpg")) {
                     item.classList.add("file");
                     item.textContent = "📄 " + file.name;
                     item.onclick = () => displayImage(file.download_url);

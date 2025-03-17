@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texture Reference Photo</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: white;
+        }
+        #file-tree {
+            width: 300px;
+            padding: 10px;
+            border-right: 2px solid #444;
+            overflow-y: auto;
+        }
+        #gallery {
+            flex-grow: 1;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .folder {
+            cursor: pointer;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .file {
+            margin-left: 20px;
+            cursor: pointer;
+            color: #4db8ff;
+        }
+        .hidden {
+            display: none;
+        }
+        .thumbnail {
+            max-width: 150px;
+            max-height: 150px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="file-tree"></div>
+    <div id="gallery"></div>
+
+    <script>
+        const repoOwner = "YeHang-GitHub";
+        const repoName = "Texture-Reference-Photo";
+        const branch = "main";  // 修改为你的默认分支
+        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+
+        async function fetchDirectory(path = "") {
+            const url = apiUrl + path;
+            const response = await fetch(url);
+            return response.json();
+        }
+
+        async function createFileTree(container, path = "", level = 0) {
+            const files = await fetchDirectory(path);
+
+            files.forEach(file => {
+                const item = document.createElement("div");
+                item.style.marginLeft = `${level * 15}px`;
+
+                if (file.type === "dir") {
+                    item.classList.add("folder");
+                    item.textContent = "📂 " + file.name;
+
+                    // 创建一个子目录容器，默认隐藏
+                    const subContainer = document.createElement("div");
+                    subContainer.classList.add("hidden");
+
+                    item.onclick = async (event) => {
+                        event.stopPropagation(); // 防止事件冒泡
+                        if (subContainer.childElementCount === 0) {
+                            await createFileTree(subContainer, file.path, level + 1);
+                        }
+                        subContainer.classList.toggle("hidden");
+                    };
+
+                    container.appendChild(item);
+                    container.appendChild(subContainer);
+                } else if (file.name.endsWith(".avif")) {
+                    item.classList.add("file");
+                    item.textContent = "📄 " + file.name;
+                    item.onclick = () => displayImage(file.download_url);
+                    container.appendChild(item);
+                }
+            });
+        }
+
+        function displayImage(url) {
+            const gallery = document.getElementById("gallery");
+            gallery.innerHTML = "";  // 清空之前的内容
+            const img = document.createElement("img");
+            img.src = url;
+            img.classList.add("thumbnail");
+            gallery.appendChild(img);
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const fileTree = document.getElementById("file-tree");
+            await createFileTree(fileTree);
+        });
+    </script>
+
+</body>
+</html>

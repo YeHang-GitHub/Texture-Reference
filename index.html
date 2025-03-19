@@ -29,15 +29,16 @@
             gap: 10px;
             overflow-y: auto;
             height: 100vh;
+            align-content: flex-start;
         }
         .folder {
             cursor: pointer;
             margin: 5px 0;
             font-weight: bold;
-            transition: font-size 0.1s, background-color 0.2s;
+            transition: background-color 0.2s;
         }
         .folder:hover {
-            font-size: 1.1em;
+            background-color: #444;
         }
         .folder.selected {
             background-color: #555;
@@ -51,7 +52,7 @@
             display: none;
         }
         .thumbnail {
-            max-width: 100%;
+            width: auto;
             height: auto;
             max-height: 250px;
             cursor: pointer;
@@ -86,6 +87,17 @@
             transform: scale(5);
             transition: transform 0.4s;
         }
+        #slider-container {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #slider {
+            width: 100px;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +106,10 @@
     <div id="gallery"></div>
     <div id="myModal" class="modal">
         <img class="modal-content" id="img01">
+    </div>
+    <div id="slider-container">
+        <label for="slider">Image Size:</label>
+        <input type="range" id="slider" min="50" max="250" value="100">
     </div>
 
     <script>
@@ -149,6 +165,7 @@
                     const img = document.createElement("img");
                     img.src = file.download_url;
                     img.classList.add("thumbnail");
+                    img.style.maxHeight = `${document.getElementById("slider").value}px`;
                     img.onclick = () => {
                         const modal = document.getElementById("myModal");
                         const modalImg = document.getElementById("img01");
@@ -182,6 +199,13 @@
                 const originY = (offsetY / rect.height) * 100;
                 modalImg.style.transformOrigin = `${originX}% ${originY}%`;
                 modalImg.classList.toggle("enlarged");
+            };
+
+            const slider = document.getElementById("slider");
+            slider.oninput = () => {
+                document.querySelectorAll(".thumbnail").forEach(img => {
+                    img.style.maxHeight = `${slider.value}px`;
+                });
             };
         });
     </script>

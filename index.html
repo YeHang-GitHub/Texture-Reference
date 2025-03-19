@@ -75,6 +75,12 @@
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+        .modal.show {
+            display: flex;
+            opacity: 1;
         }
         .modal-content {
             margin: auto;
@@ -85,7 +91,6 @@
         }
         .modal-content.enlarged {
             transform: scale(5);
-            transition: transform 0.4s;
         }
         #slider-container {
             position: fixed;
@@ -98,7 +103,7 @@
         }
         #slider {
             width: 175px;
-            height: 10px;
+            height: 5px;
         }
     </style>
 </head>
@@ -176,7 +181,7 @@
                 img.onclick = () => {
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
-                    modal.style.display = "flex";
+                    modal.classList.add("show");
                     modalImg.src = img.src;
                 };
                 gallery.appendChild(img);
@@ -192,7 +197,7 @@
 
             modal.onclick = (event) => {
                 if (event.target !== modalImg) {
-                    modal.style.display = "none";
+                    modal.classList.remove("show");
                     modalImg.classList.remove("enlarged");
                 }
             };

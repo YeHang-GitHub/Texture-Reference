@@ -90,13 +90,15 @@
         #slider-container {
             position: fixed;
             bottom: 10px;
-            right: 10px;
+            left: 10px;
             background-color: #333;
             padding: 10px;
             border-radius: 5px;
+            display: none; /* Initially hidden */
         }
         #slider {
-            width: 100px;
+            width: 175px;
+            height: 10px;
         }
     </style>
 </head>
@@ -108,7 +110,6 @@
         <img class="modal-content" id="img01">
     </div>
     <div id="slider-container">
-        <label for="slider">Image Size:</label>
         <input type="range" id="slider" min="50" max="250" value="100">
     </div>
 
@@ -159,21 +160,26 @@
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
             const files = await fetchDirectory(path);
-            
-            files.forEach(file => {
-                if (file.name.endsWith(".jpg")) {
-                    const img = document.createElement("img");
-                    img.src = file.download_url;
-                    img.classList.add("thumbnail");
-                    img.style.maxHeight = `${document.getElementById("slider").value}px`;
-                    img.onclick = () => {
-                        const modal = document.getElementById("myModal");
-                        const modalImg = document.getElementById("img01");
-                        modal.style.display = "flex";
-                        modalImg.src = img.src;
-                    };
-                    gallery.appendChild(img);
-                }
+
+            const imageFiles = files.filter(file => file.name.endsWith(".jpg"));
+            if (imageFiles.length > 0) {
+                document.getElementById("slider-container").style.display = "block";
+            } else {
+                document.getElementById("slider-container").style.display = "none";
+            }
+
+            imageFiles.forEach(file => {
+                const img = document.createElement("img");
+                img.src = file.download_url;
+                img.classList.add("thumbnail");
+                img.style.maxHeight = `${document.getElementById("slider").value}px`;
+                img.onclick = () => {
+                    const modal = document.getElementById("myModal");
+                    const modalImg = document.getElementById("img01");
+                    modal.style.display = "flex";
+                    modalImg.src = img.src;
+                };
+                gallery.appendChild(img);
             });
         }
 

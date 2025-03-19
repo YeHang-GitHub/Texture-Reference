@@ -69,10 +69,10 @@
             display: block;
             max-width: 80%;
             max-height: 80%;
-            transition: transform 0.2s;
+            transition: transform 0.2s, transform-origin 0s;
         }
         .modal-content.enlarged {
-            transform: scale(2);
+            transform: scale(5);
         }
         .close {
             position: absolute;
@@ -169,7 +169,13 @@
                 modalImg.classList.remove("enlarged");
             };
 
-            modalImg.onclick = () => {
+            modalImg.onclick = (event) => {
+                const rect = modalImg.getBoundingClientRect();
+                const offsetX = event.clientX - rect.left;
+                const offsetY = event.clientY - rect.top;
+                const originX = (offsetX / rect.width) * 100;
+                const originY = (offsetY / rect.height) * 100;
+                modalImg.style.transformOrigin = `${originX}% ${originY}%`;
                 modalImg.classList.toggle("enlarged");
             };
         });

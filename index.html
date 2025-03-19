@@ -34,6 +34,13 @@
             cursor: pointer;
             margin: 5px 0;
             font-weight: bold;
+            transition: font-size 0.1s, background-color 0.2s;
+        }
+        .folder:hover {
+            font-size: 1.1em;
+        }
+        .folder.selected {
+            background-color: #555;
         }
         .file {
             margin-left: 20px;
@@ -50,6 +57,10 @@
             cursor: pointer;
             border-radius: 5px;
             display: block;
+            transition: transform 0.2s;
+        }
+        .thumbnail:hover {
+            transform: scale(1.02);
         }
         .modal {
             display: none;
@@ -73,6 +84,7 @@
         }
         .modal-content.enlarged {
             transform: scale(5);
+            transition: transform 0.4s;
         }
     </style>
 </head>
@@ -112,6 +124,8 @@
 
                     item.onclick = async (event) => {
                         event.stopPropagation();
+                        document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                        item.classList.add('selected');
                         if (subContainer.childElementCount === 0) {
                             await createFileTree(subContainer, file.path, level + 1);
                         }

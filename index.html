@@ -3,15 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Texture Reference Photo</title>
+    <title>Texture Reference</title>
     <style>
         body {
             display: flex;
+            flex-direction: column;
             font-family: Arial, sans-serif;
             background-color: #222;
             color: white;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
+        }
+        #topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            padding: 0 20px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+        #header {
+            font-size: 1.5em;
+        }
+        #slider-container {
+            display: flex;
+            align-items: center;
+        }
+        #slider {
+            width: 175px;
+            height: 5px;
+            margin-left: 10px;
+        }
+        #content {
+            display: flex;
+            flex-grow: 1;
             overflow: hidden;
         }
         #file-tree {
@@ -92,19 +119,6 @@
         .modal-content.enlarged {
             transform: scale(5);
         }
-        #slider-container {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background-color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            display: none; /* Initially hidden */
-        }
-        #slider {
-            width: 175px;
-            height: 5px;
-        }
     </style>
 </head>
 
@@ -120,13 +134,18 @@
 
 <body>
 
-    <div id="file-tree"></div>
-    <div id="gallery"></div>
+    <div id="topbar">
+        <div id="header">Texture Reference</div>
+        <div id="slider-container">
+            <input type="range" id="slider" min="50" max="250" value="100">
+        </div>
+    </div>
+    <div id="content">
+        <div id="file-tree"></div>
+        <div id="gallery"></div>
+    </div>
     <div id="myModal" class="modal">
         <img class="modal-content" id="img01">
-    </div>
-    <div id="slider-container">
-        <input type="range" id="slider" min="50" max="250" value="100">
     </div>
 
     <script>

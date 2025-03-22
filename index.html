@@ -143,6 +143,18 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 
@@ -168,6 +180,7 @@
         <div id="file-tree"></div>
         <div id="gallery"></div>
     </div>
+    <div id="error-message" class="error-message">Website is busy, please come back 1 hour later</div>
     <div id="myModal" class="modal">
         <div class="loading-container" id="loading-container">
             <div class="loading" id="loading"></div>
@@ -187,11 +200,17 @@
         async function fetchDirectory(baseApiUrl, path = "") {
             const url = path ? `${baseApiUrl}${path}` : baseApiUrl;
             console.log(`Fetching directory: ${url}`); // Debugging log
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            } catch (error) {
+                console.error(error);
+                document.getElementById("error-message").style.display = "block";
+                throw error;
             }
-            return response.json();
         }
 
         async function createFileTree(container, path = "", level = 0) {

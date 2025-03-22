@@ -119,6 +119,30 @@
         .modal-content.enlarged {
             transform: scale(5);
         }
+        .loading-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .loading {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+        .loading-text {
+            margin-left: 10px;
+            color: #fff;
+            font-size: 1em;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -145,6 +169,10 @@
         <div id="gallery"></div>
     </div>
     <div id="myModal" class="modal">
+        <div class="loading-container" id="loading-container">
+            <div class="loading" id="loading"></div>
+            <div class="loading-text">Loading original resolution...</div>
+        </div>
         <img class="modal-content" id="img01">
     </div>
 
@@ -219,8 +247,16 @@
                 img.onclick = () => {
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
+                    const loadingContainer = document.getElementById("loading-container");
                     modal.classList.add("show");
-                    modalImg.src = file.download_url.replace("Thumbnails", "Images");
+                    modalImg.src = img.src;
+                    loadingContainer.style.display = "flex";
+                    const originalImg = new Image();
+                    originalImg.src = file.download_url.replace("Thumbnails", "Images");
+                    originalImg.onload = () => {
+                        modalImg.src = originalImg.src;
+                        loadingContainer.style.display = "none";
+                    };
                 };
                 gallery.appendChild(img);
             });

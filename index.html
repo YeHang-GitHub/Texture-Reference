@@ -153,21 +153,27 @@
         const repoName = "Texture-Reference-Photo";
         const branch = "main";
         const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        const imagesApiUrl = `${apiUrl}Images/`;
+        const thumbnailsApiUrl = `${apiUrl}Thumbnails/`;
 
-        async function fetchDirectory(path = "") {
-            const url = apiUrl + path;
+        async function fetchDirectory(baseApiUrl, path = "") {
+            const url = path ? `${baseApiUrl}${path}` : baseApiUrl;
+            console.log(`Fetching directory: ${url}`); // Debugging log
             const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         }
 
         async function createFileTree(container, path = "", level = 0) {
-            const files = await fetchDirectory(path);
+            const files = await fetchDirectory(imagesApiUrl, path);
+            console.log(`Creating file tree for path: ${path}`, files); // Debugging log
             
             files.forEach(file => {
-                const item = document.createElement("div");
-                item.style.marginLeft = `${level * 15}px`;
-                
                 if (file.type === "dir") {
+                    const item = document.createElement("div");
+                    item.style.marginLeft = `${level * 15}px`;
                     item.classList.add("folder");
                     item.textContent = "📂 " + file.name;
 
@@ -179,10 +185,10 @@
                         document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
                         item.classList.add('selected');
                         if (subContainer.childElementCount === 0) {
-                            await createFileTree(subContainer, file.path, level + 1);
+                            await createFileTree(subContainer, file.path.replace('Images/', ''), level + 1);
                         }
                         subContainer.classList.toggle("hidden");
-                        displayImagesInFolder(file.path);
+                        displayImagesInFolder(file.path.replace('Images/', ''));
                     };
                     
                     container.appendChild(item);
@@ -194,9 +200,11 @@
         async function displayImagesInFolder(path) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
-            const files = await fetchDirectory(path);
+            console.log(`Displaying images for path: ${path}`); // Debugging log
+            const files = await fetchDirectory(thumbnailsApiUrl, path);
+            console.log(`Fetched image files:`, files); // Debugging log
 
-            const imageFiles = files.filter(file => file.name.endsWith(".jpg"));
+            const imageFiles = files.filter(file => file.name.endsWith(".jpg") || file.name.endsWith(".png"));
             if (imageFiles.length > 0) {
                 document.getElementById("slider-container").style.display = "block";
             } else {
@@ -212,7 +220,7 @@
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
                     modal.classList.add("show");
-                    modalImg.src = img.src;
+                    modalImg.src = file.download_url.replace("Thumbnails", "Images");
                 };
                 gallery.appendChild(img);
             });
@@ -220,7 +228,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const fileTree = document.getElementById("file-tree");
-            await createFileTree(fileTree);
+            await createFileTree(fileTree, "");
 
             const modal = document.getElementById("myModal");
             const modalImg = document.getElementById("img01");

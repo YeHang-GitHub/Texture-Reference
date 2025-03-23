@@ -222,11 +222,12 @@
             });
 
             function buildTree(container, tree, level, currentPath) {
-                Object.keys(tree).forEach(key => {
+                const sortedKeys = Object.keys(tree).sort((a, b) => a.localeCompare(b));
+                sortedKeys.forEach(key => {
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
                     item.classList.add(tree[key].name ? "file" : "folder");
-                    item.textContent = tree[key].name ? tree[key].name : "📂 " + key;
+                    item.textContent = tree[key].name ? "" : "📂 " + key; // Hide file names
 
                     if (!tree[key].name) {
                         const subContainer = document.createElement("div");
@@ -244,11 +245,6 @@
                         container.appendChild(item);
                         container.appendChild(subContainer);
                         buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
-                    } else {
-                        item.onclick = () => {
-                            displayImagesInFolder(tree[key].fullsize_path, data);
-                        };
-                        container.appendChild(item);
                     }
                 });
             }

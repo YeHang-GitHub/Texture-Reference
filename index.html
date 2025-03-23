@@ -30,11 +30,60 @@
         #slider-container {
             display: flex;
             align-items: center;
+            position: relative;
         }
         #slider {
             width: 175px;
             height: 5px;
             margin-left: 10px;
+        }
+        #ko-fi-button {
+            margin-left: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            height: 30px; /* Set height to 38px */
+            position: relative; /* Add this line */
+            top: 3px; /* Move down 5px */
+            left: 5px; /* Move right 5px */
+        }
+        #ko-fi-button:hover {
+            transform: scale(1.1);
+        }
+        #ko-fi-button-container {
+            position: relative;
+            display: inline-block;
+        }
+        #ko-fi-button-container:hover #ko-fi-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        #ko-fi-tooltip {
+            visibility: hidden;
+            width: auto; /* Adjust width to auto */
+            max-width: 150px; /* Set a max-width */
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px; /* Add padding to ensure message fits in one line */
+            position: absolute;
+            z-index: 1;
+            top: 125%; /* Position below the button */
+            left: 0%; /* Move left by 10px */
+            transform: translateX(-50%); /* Center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap; /* Ensure the message stays on one line */
+        }
+        #ko-fi-tooltip::after {
+            content: "";
+            position: absolute;
+            bottom: 100%; /* Arrow at the top */
+            left: 70%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #333 transparent;
         }
         #content {
             display: flex;
@@ -174,6 +223,12 @@
         <div id="header">Texture Reference</div>
         <div id="slider-container">
             <input type="range" id="slider" min="50" max="250" value="100">
+            <div id="ko-fi-button-container">
+                <a href="https://ko-fi.com/yehang" target="_blank">
+                    <img id="ko-fi-button" src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi">
+                </a>
+                <div id="ko-fi-tooltip">Buy me a coffee ~</div>
+            </div>
         </div>
     </div>
     <div id="content">
@@ -268,11 +323,17 @@
                 document.getElementById("slider-container").style.display = "none";
             }
 
+            const slider = document.getElementById("slider");
+            const maxImageSize = 250;
+            const minImageSize = 50;
+            const imageSize = Math.max(minImageSize, maxImageSize - files.length * 2);
+            slider.value = imageSize;
+
             files.forEach(file => {
                 const img = document.createElement("img");
                 img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
                 img.classList.add("thumbnail");
-                img.style.maxHeight = `${document.getElementById("slider").value}px`;
+                img.style.maxHeight = `${imageSize}px`;
                 img.onclick = () => {
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");

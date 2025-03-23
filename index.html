@@ -317,11 +317,8 @@
             const files = collectImagesFromFolder(folderPath, data);
             console.log(`Displaying images for folder: ${folderPath}`, files); // Debugging log
 
-            if (files.length > 0) {
-                document.getElementById("slider-container").style.display = "block";
-            } else {
-                document.getElementById("slider-container").style.display = "none";
-            }
+            // Always display the slider container
+            document.getElementById("slider-container").style.display = "flex";
 
             const slider = document.getElementById("slider");
             const maxImageSize = 250;

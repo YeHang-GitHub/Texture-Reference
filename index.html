@@ -190,16 +190,9 @@
     </div>
 
     <script>
-        const repoOwner = "YeHang-GitHub";
-        const repoName = "Texture-Reference-Photo";
-        const branch = "main";
-        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
-        const imagesApiUrl = `${apiUrl}Images/`;
-        const thumbnailsApiUrl = `${apiUrl}Thumbnails/`;
+        const jsonUrl = 'https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/directory_cache.json';
 
-        async function fetchDirectory(baseApiUrl, path = "") {
-            const url = path ? `${baseApiUrl}${path}` : baseApiUrl;
-            console.log(`Fetching directory: ${url}`); // Debugging log
+        async function fetchJsonData(url) {
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -213,54 +206,69 @@
             }
         }
 
-        async function createFileTree(container, path = "", level = 0) {
-            const files = await fetchDirectory(imagesApiUrl, path);
-            console.log(`Creating file tree for path: ${path}`, files); // Debugging log
-            
-            files.forEach(file => {
-                if (file.type === "dir") {
+        async function createFileTree(container, data, level = 0) {
+            const folders = {};
+
+            data.forEach(file => {
+                const parts = file.fullsize_path.split('/').slice(1); // Remove 'Images' from the path
+                let currentLevel = folders;
+
+                parts.forEach((part, index) => {
+                    if (!currentLevel[part]) {
+                        currentLevel[part] = index === parts.length - 1 ? file : {};
+                    }
+                    currentLevel = currentLevel[part];
+                });
+            });
+
+            function buildTree(container, tree, level) {
+                Object.keys(tree).forEach(key => {
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
-                    item.classList.add("folder");
-                    item.textContent = "📂 " + file.name;
+                    item.classList.add(tree[key].name ? "file" : "folder");
+                    item.textContent = tree[key].name ? tree[key].name : "📂 " + key;
 
-                    const subContainer = document.createElement("div");
-                    subContainer.classList.add("hidden");
+                    if (!tree[key].name) {
+                        const subContainer = document.createElement("div");
+                        subContainer.classList.add("hidden");
 
-                    item.onclick = async (event) => {
-                        event.stopPropagation();
-                        document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                        item.classList.add('selected');
-                        if (subContainer.childElementCount === 0) {
-                            await createFileTree(subContainer, file.path.replace('Images/', ''), level + 1);
-                        }
-                        subContainer.classList.toggle("hidden");
-                        displayImagesInFolder(file.path.replace('Images/', ''));
-                    };
-                    
-                    container.appendChild(item);
-                    container.appendChild(subContainer);
-                }
-            });
+                        item.onclick = (event) => {
+                            event.stopPropagation();
+                            document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                            item.classList.add('selected');
+                            subContainer.classList.toggle("hidden");
+                            displayImagesInFolder(data.filter(file => file.fullsize_path.startsWith(`Images/${key}`)));
+                        };
+
+                        container.appendChild(item);
+                        container.appendChild(subContainer);
+                        buildTree(subContainer, tree[key], level + 1);
+                    } else {
+                        item.onclick = () => {
+                            displayImagesInFolder([tree[key]]);
+                        };
+                        container.appendChild(item);
+                    }
+                });
+            }
+
+            buildTree(container, folders, level);
         }
 
-        async function displayImagesInFolder(path) {
+        async function displayImagesInFolder(files) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
-            console.log(`Displaying images for path: ${path}`); // Debugging log
-            const files = await fetchDirectory(thumbnailsApiUrl, path);
-            console.log(`Fetched image files:`, files); // Debugging log
+            console.log(`Displaying images for files:`, files); // Debugging log
 
-            const imageFiles = files.filter(file => file.name.endsWith(".jpg") || file.name.endsWith(".png"));
-            if (imageFiles.length > 0) {
+            if (files.length > 0) {
                 document.getElementById("slider-container").style.display = "block";
             } else {
                 document.getElementById("slider-container").style.display = "none";
             }
 
-            imageFiles.forEach(file => {
+            files.forEach(file => {
                 const img = document.createElement("img");
-                img.src = file.download_url;
+                img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
                 img.classList.add("thumbnail");
                 img.style.maxHeight = `${document.getElementById("slider").value}px`;
                 img.onclick = () => {
@@ -271,7 +279,7 @@
                     modalImg.src = img.src;
                     loadingContainer.style.display = "flex";
                     const originalImg = new Image();
-                    originalImg.src = file.download_url.replace("Thumbnails", "Images");
+                    originalImg.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`;
                     originalImg.onload = () => {
                         modalImg.src = originalImg.src;
                         loadingContainer.style.display = "none";
@@ -283,7 +291,8 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const fileTree = document.getElementById("file-tree");
-            await createFileTree(fileTree, "");
+            const data = await fetchJsonData(jsonUrl);
+            await createFileTree(fileTree, data);
 
             const modal = document.getElementById("myModal");
             const modalImg = document.getElementById("img01");

@@ -206,7 +206,7 @@
             }
         }
 
-        async function createFileTree(container, data, level = 0) {
+        async function createFileTree(container, data, level = 0, parentPath = 'Images') {
             const folders = {};
 
             data.forEach(file => {
@@ -221,7 +221,7 @@
                 });
             });
 
-            function buildTree(container, tree, level) {
+            function buildTree(container, tree, level, currentPath) {
                 Object.keys(tree).forEach(key => {
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
@@ -237,28 +237,34 @@
                             document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
                             item.classList.add('selected');
                             subContainer.classList.toggle("hidden");
-                            displayImagesInFolder(data.filter(file => file.fullsize_path.startsWith(`Images/${key}`)));
+                            const newPath = `${currentPath}/${key}`;
+                            displayImagesInFolder(newPath, data);
                         };
 
                         container.appendChild(item);
                         container.appendChild(subContainer);
-                        buildTree(subContainer, tree[key], level + 1);
+                        buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
                     } else {
                         item.onclick = () => {
-                            displayImagesInFolder([tree[key]]);
+                            displayImagesInFolder(tree[key].fullsize_path, data);
                         };
                         container.appendChild(item);
                     }
                 });
             }
 
-            buildTree(container, folders, level);
+            buildTree(container, folders, level, parentPath);
         }
 
-        async function displayImagesInFolder(files) {
+        function collectImagesFromFolder(folderPath, data) {
+            return data.filter(file => file.fullsize_path.startsWith(folderPath));
+        }
+
+        async function displayImagesInFolder(folderPath, data) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
-            console.log(`Displaying images for files:`, files); // Debugging log
+            const files = collectImagesFromFolder(folderPath, data);
+            console.log(`Displaying images for folder: ${folderPath}`, files); // Debugging log
 
             if (files.length > 0) {
                 document.getElementById("slider-container").style.display = "block";

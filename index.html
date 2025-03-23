@@ -204,6 +204,18 @@
             display: none;
             z-index: 1000;
         }
+        #canvas-container {
+            position: absolute;
+            top: 50px; /* Adjust to be below the topbar */
+            left: 200px; /* Adjust to be beside the file tree */
+            width: calc(100% - 200px); /* Adjust to fit within the gallery area */
+            height: calc(100% - 50px); /* Adjust to fit within the gallery area */
+            z-index: 10; /* Ensure it is on top */
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 
@@ -234,6 +246,9 @@
     <div id="content">
         <div id="file-tree"></div>
         <div id="gallery"></div>
+        <div id="canvas-container">
+            <canvas id="canvas"></canvas> <!-- Add canvas for animation -->
+        </div>
     </div>
     <div id="error-message" class="error-message">Website is busy, please come back 1 hour later</div>
     <div id="myModal" class="modal">
@@ -246,6 +261,9 @@
 
     <script>
         const jsonUrl = 'https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/directory_cache.json';
+        let totalSeconds = 0;
+        let img = new Image();
+        let canvas, context;
 
         async function fetchJsonData(url) {
             try {
@@ -295,6 +313,7 @@
                             subContainer.classList.toggle("hidden");
                             const newPath = `${currentPath}/${key}`;
                             displayImagesInFolder(newPath, data);
+                            document.getElementById("canvas-container").style.display = "none"; // Hide canvas on folder click
                         };
 
                         container.appendChild(item);
@@ -349,6 +368,27 @@
             });
         }
 
+        function draw(delta) {
+            totalSeconds += delta;
+            const zoomFactor = 0.8; // Zoom out a little bit
+            const x = -1 * (img.width * zoomFactor - canvas.width) / 2 * (1 + Math.cos(totalSeconds / (4 * Math.PI))); // Slow down by half
+            const y = -1 * (img.height * zoomFactor - canvas.height) / 2 * (1 + -Math.sin(totalSeconds / (4 * Math.PI))); // Slow down by half
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(img, x, y, img.width * zoomFactor, img.height * zoomFactor); // Apply zoom factor
+        }
+
+        function animate() {
+            let lastTime = 0;
+            function frame(time) {
+                const delta = (time - lastTime) / 1000;
+                lastTime = time;
+                draw(delta);
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             const fileTree = document.getElementById("file-tree");
             const data = await fetchJsonData(jsonUrl);
@@ -379,6 +419,20 @@
                 document.querySelectorAll(".thumbnail").forEach(img => {
                     img.style.maxHeight = `${slider.value}px`;
                 });
+            };
+
+            // Pick a random image for the animation
+            const randomImage = data[Math.floor(Math.random() * data.length)];
+            img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${randomImage.fullsize_path}`;
+
+            // Set up canvas
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+
+            img.onload = () => {
+                canvas.width = document.getElementById("gallery").clientWidth;
+                canvas.height = document.getElementById("gallery").clientHeight;
+                animate();
             };
         });
     </script>

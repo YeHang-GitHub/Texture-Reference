@@ -300,7 +300,10 @@
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
                     item.classList.add(tree[key].name ? "file" : "folder");
-                    item.textContent = tree[key].name ? "" : "📂 " + key; // Hide file names
+
+                    // Determine if the folder is a parent or the deepest folder
+                    const isDeepestFolder = !Object.keys(tree[key]).some(subKey => typeof tree[key][subKey] === 'object' && !tree[key][subKey].name);
+                    item.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key; // Hide file names
 
                     if (!tree[key].name) {
                         const subContainer = document.createElement("div");
@@ -319,6 +322,11 @@
                         container.appendChild(item);
                         container.appendChild(subContainer);
                         buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
+                    } else {
+                        item.onclick = () => {
+                            displayImagesInFolder(tree[key].fullsize_path, data);
+                        };
+                        container.appendChild(item);
                     }
                 });
             }
@@ -327,7 +335,7 @@
         }
 
         function collectImagesFromFolder(folderPath, data) {
-            return data.filter(file => file.fullsize_path.startsWith(folderPath));
+            return data.filter(file => file.fullsize_path.startsWith(folderPath + '/'));
         }
 
         async function displayImagesInFolder(folderPath, data) {

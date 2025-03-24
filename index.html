@@ -370,7 +370,7 @@
 
         function draw(delta) {
             totalSeconds += delta;
-            const zoomFactor = 0.8; // Zoom out a little bit
+            const zoomFactor = 0.4; // Zoom out a little bit
             const x = -1 * (img.width * zoomFactor - canvas.width) / 2 * (1 + Math.cos(totalSeconds / (4 * Math.PI))); // Slow down by half
             const y = -1 * (img.height * zoomFactor - canvas.height) / 2 * (1 + -Math.sin(totalSeconds / (4 * Math.PI))); // Slow down by half
 

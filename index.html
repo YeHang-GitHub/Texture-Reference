@@ -300,10 +300,22 @@
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
                     item.classList.add(tree[key].name ? "file" : "folder");
+                    item.style.display = "flex"; // Use flexbox for alignment
+                    item.style.justifyContent = "space-between"; // Align text and count
 
                     // Determine if the folder is a parent or the deepest folder
                     const isDeepestFolder = !Object.keys(tree[key]).some(subKey => typeof tree[key][subKey] === 'object' && !tree[key][subKey].name);
-                    item.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key; // Hide file names
+                    const photoCount = tree[key].name ? 0 : countPhotosInFolder(`${currentPath}/${key}`, data);
+                    const folderName = document.createElement("span");
+                    folderName.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key;
+
+                    // Add photo count to folder names
+                    const countSpan = document.createElement("span");
+                    countSpan.style.color = "#aaa";
+                    countSpan.textContent = tree[key].name ? "" : `(${photoCount})`;
+
+                    item.appendChild(folderName);
+                    item.appendChild(countSpan);
 
                     if (!tree[key].name) {
                         const subContainer = document.createElement("div");
@@ -332,6 +344,10 @@
             }
 
             buildTree(container, folders, level, parentPath);
+        }
+
+        function countPhotosInFolder(folderPath, data) {
+            return data.filter(file => file.fullsize_path.startsWith(folderPath + '/')).length;
         }
 
         function collectImagesFromFolder(folderPath, data) {
@@ -447,3 +463,4 @@
 
 </body>
 </html>
+``` 

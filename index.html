@@ -351,7 +351,9 @@
         }
 
         function collectImagesFromFolder(folderPath, data) {
-            return data.filter(file => file.fullsize_path.startsWith(folderPath + '/'));
+            return data
+                .filter(file => file.fullsize_path.startsWith(folderPath + '/'))
+                .sort((a, b) => a.name.localeCompare(b.name)); // 按文件名排序
         }
 
         async function displayImagesInFolder(folderPath, data) {
@@ -463,4 +465,3 @@
 
 </body>
 </html>
-``` 

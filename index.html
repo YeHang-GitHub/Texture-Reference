@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Texture Reference</title>
     <style>
+        /* Body 设置固定高度，不滚动，滚动条由内部区域控制 */
         body {
             display: flex;
             flex-direction: column;
@@ -13,8 +14,9 @@
             color: white;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* 防止页面整体滚动 */
         }
+        /* 顶部栏 */
         #topbar {
             display: flex;
             justify-content: space-between;
@@ -85,11 +87,13 @@
             border-style: solid;
             border-color: transparent transparent #333 transparent;
         }
+        /* #content 占据顶部栏下剩余区域，并隐藏自身滚动 */
         #content {
             display: flex;
-            flex-grow: 1;
+            height: calc(100vh - 50px);
             overflow: hidden;
         }
+        /* 左侧文件树：固定宽度，并独立垂直滚动 */
         #file-tree {
             width: 200px;
             padding: 10px;
@@ -97,15 +101,23 @@
             overflow-y: auto;
             flex-shrink: 0;
         }
+        /* 右侧画廊：自适应宽度，并独立垂直滚动 */
         #gallery {
             flex-grow: 1;
             padding: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            position: relative; /* 用于 JS 绝对定位图片 */
             overflow-y: auto;
-            height: 100vh;
-            align-content: flex-start;
+            height: 100%;
+        }
+        /* canvas-container（动画区域）如果需要放在画廊上层，不影响滚动，建议保持绝对定位 */
+        #canvas-container {
+            position: absolute;
+            top: 50px; /* 位于顶部栏下 */
+            left: 222px; /* 左侧：200px 文件树 + 22px gap（可根据需要调整） */
+            width: calc(100% - 222px);
+            height: calc(100% - 50px);
+            z-index: 10;
+            pointer-events: none; /* 避免遮挡右侧画廊的滚动或点击 */
         }
         .folder {
             cursor: pointer;
@@ -129,13 +141,9 @@
             overflow: hidden;
         }
         .thumbnail {
-            width: auto;
-            height: auto;
-            max-height: 250px;
-            cursor: pointer;
             border-radius: 5px;
-            display: block;
             transition: transform 0.2s;
+            position: absolute; /* 由 JS 动态设置 top 与 left */
         }
         .thumbnail:hover {
             transform: scale(1.02);
@@ -205,22 +213,17 @@
             display: none;
             z-index: 1000;
         }
-        #canvas-container {
-            position: absolute;
-            top: 50px; /* Adjust to be below the topbar */
-            left: 222px; /* increased from 200px to shift canvas right */
-            width: calc(100% - 222px); /* updated accordingly */
-            height: calc(100% - 50px); /* Adjust to fit within the gallery area */
-            z-index: 10; /* Ensure it is on top */
-        }
-        #canvas {
-            width: 100%;
-            height: 100%;
-        }
         .sub-container {
             border-left: 1px solid #444;
             margin-left: 0;
             padding-left: 2px;
+        }
+
+        /* 新增：瀑布流内部容器 */
+        #waterfall {
+            position: relative;
+            width: 100%;
+            /* 高度由 JS 动态设置 */
         }
     </style>
 
@@ -399,26 +402,69 @@
                 .sort((a, b) => a.name.localeCompare(b.name)); // 按文件名排序
         }
 
+        // 瀑布流布局实时计算函数
+        function positionThumbnails() {
+            const waterfall = document.getElementById("waterfall");
+            const gap = 10; // 图片间隔
+            const thumbnails = Array.from(waterfall.getElementsByClassName("thumbnail"));
+            if (thumbnails.length === 0) return;
+            // 统一宽度：以第一个图片的实际宽度为参照
+            const colWidth = thumbnails[0].clientWidth;
+            const containerWidth = waterfall.clientWidth;
+            let colCount = Math.floor((containerWidth + gap) / (colWidth + gap));
+            colCount = Math.max(colCount, 1);
+            const colHeights = new Array(colCount).fill(0);
+
+            thumbnails.forEach(img => {
+                // 找出当前高度最小的那一列
+                let minCol = 0;
+                let minHeight = colHeights[0];
+                for (let i = 1; i < colCount; i++) {
+                    if (colHeights[i] < minHeight) {
+                        minHeight = colHeights[i];
+                        minCol = i;
+                    }
+                }
+                img.style.top = minHeight + "px";
+                img.style.left = (minCol * (colWidth + gap)) + "px";
+                colHeights[minCol] += img.clientHeight + gap;
+            });
+            // 更新 waterfall 高度以适应瀑布流布局
+            waterfall.style.height = Math.max(...colHeights) + "px";
+        }
+
+        // slider 缩放逻辑：调整图片宽度，随后重新计算位置
+        const slider = document.getElementById("slider");
+        slider.oninput = () => {
+            document.querySelectorAll(".thumbnail").forEach(img => {
+                img.style.width = `${slider.value}px`;
+                img.style.height = "auto"; // 保持图片比例自适应
+            });
+            setTimeout(positionThumbnails, 50);
+        };
+
         async function displayImagesInFolder(folderPath, data) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
+            // 新增：创建内部容器用于瀑布流布局
+            const waterfall = document.createElement("div");
+            waterfall.id = "waterfall";
+            gallery.appendChild(waterfall);
+            
             const files = collectImagesFromFolder(folderPath, data);
-            console.log(`Displaying images for folder: ${folderPath}`, files); // Debugging log
+            console.log(`Displaying images for folder: ${folderPath}`, files);
 
-            // Always display the slider container
             document.getElementById("slider-container").style.display = "flex";
 
             const slider = document.getElementById("slider");
-            const maxImageSize = 250;
-            const minImageSize = 50;
-            const imageSize = Math.max(minImageSize, maxImageSize - files.length * 2);
-            slider.value = imageSize;
+            const imageWidth = slider.value; 
 
             files.forEach(file => {
                 const img = document.createElement("img");
                 img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
                 img.classList.add("thumbnail");
-                img.style.maxHeight = `${imageSize}px`;
+                img.style.width = `${imageWidth}px`;
+                img.style.height = "auto";
                 img.onclick = () => {
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
@@ -433,7 +479,9 @@
                         loadingContainer.style.display = "none";
                     };
                 };
-                gallery.appendChild(img);
+                // 图片加载完成后更新瀑布流位置
+                img.onload = positionThumbnails;
+                waterfall.appendChild(img);
             });
         }
 
@@ -483,18 +531,11 @@
                 modalImg.classList.toggle("enlarged");
             };
 
-            const slider = document.getElementById("slider");
-            slider.oninput = () => {
-                document.querySelectorAll(".thumbnail").forEach(img => {
-                    img.style.maxHeight = `${slider.value}px`;
-                });
-            };
-
-            // Pick a random image for the animation
+            // 选取随机图片用于 canvas 动画
             const randomImage = data[Math.floor(Math.random() * data.length)];
             img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${randomImage.fullsize_path}`;
 
-            // Set up canvas
+            // 设置 canvas
             canvas = document.getElementById("canvas");
             context = canvas.getContext("2d");
 

@@ -433,44 +433,89 @@
             waterfall.style.height = Math.max(...colHeights) + "px";
         }
 
-        // slider 缩放逻辑：调整图片宽度，随后重新计算位置
+        // 修改 slider 默认值，保证默认每行显示5张图片
         const slider = document.getElementById("slider");
-        slider.oninput = () => {
+        slider.min = 1;
+        slider.max = 10;
+        slider.step = 1;
+        slider.value = 6; // 计算：10 - 6 + 1 = 5 张/行
+
+        function updateGalleryLayout() {
+            const gap = 10; // 图片间隔
+            const slider = document.getElementById("slider");
+            // 实际每行图片数 = (slider.max - slider.value + slider.min)
+            const numImagesPerRow = parseInt(slider.max, 10) - parseInt(slider.value, 10) + parseInt(slider.min, 10);
+            const waterfall = document.getElementById("waterfall");
+            const containerWidth = waterfall.clientWidth;
+            // 计算每张图片宽度，取整避免小数误差
+            const newWidth = Math.floor((containerWidth - gap * (numImagesPerRow - 1)) / numImagesPerRow);
             document.querySelectorAll(".thumbnail").forEach(img => {
-                img.style.width = `${slider.value}px`;
-                img.style.height = "auto"; // 保持图片比例自适应
+                img.style.width = newWidth + "px";
+                img.style.height = "auto";
             });
-            setTimeout(positionThumbnails, 50);
+            positionThumbnails();
+            // 更新 canvas 尺寸
+            const gallery = document.getElementById("gallery");
+            if (canvas) {
+                canvas.width = gallery.clientWidth;
+                canvas.height = gallery.clientHeight;
+            }
+        }
+
+        // slider 的 oninput 保持不变
+        slider.oninput = () => {
+            updateGalleryLayout();
         };
+
+        // 监听窗口resize
+        window.addEventListener("resize", () => {
+            clearTimeout(window._resizeTimeout);
+            window._resizeTimeout = setTimeout(() => {
+                updateGalleryLayout();
+            }, 150);
+        });
+
+        // 使用 window.onload 确保页面全部加载后更新布局
+        window.addEventListener("load", () => {
+            updateGalleryLayout();
+        });
 
         async function displayImagesInFolder(folderPath, data) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
-            // 新增：创建内部容器用于瀑布流布局
+            // 创建内部容器用于瀑布流布局
             const waterfall = document.createElement("div");
             waterfall.id = "waterfall";
             gallery.appendChild(waterfall);
             
+            // 先更新布局，预先计算好图片宽度
+            updateGalleryLayout();
+            
             const files = collectImagesFromFolder(folderPath, data);
             console.log(`Displaying images for folder: ${folderPath}`, files);
-
             document.getElementById("slider-container").style.display = "flex";
-
+            
+            // 根据当前slider值计算每行图片数和目标宽度
+            const gap = 10;
             const slider = document.getElementById("slider");
-            const imageWidth = slider.value; 
-
+            const numImagesPerRow = parseInt(slider.max, 10) - parseInt(slider.value, 10) + parseInt(slider.min, 10);
+            const containerWidth = waterfall.clientWidth;
+            const targetWidth = Math.floor((containerWidth - gap * (numImagesPerRow - 1)) / numImagesPerRow);
+            
             files.forEach(file => {
-                const img = document.createElement("img");
-                img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
-                img.classList.add("thumbnail");
-                img.style.width = `${imageWidth}px`;
-                img.style.height = "auto";
-                img.onclick = () => {
+                const imgEl = document.createElement("img");
+                imgEl.classList.add("thumbnail");
+                // 预先设定尺寸占位
+                imgEl.style.width = targetWidth + "px";
+                imgEl.style.height = "auto";
+                // 存储实际图片地址，延迟加载
+                imgEl.dataset.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
+                imgEl.onclick = () => {
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
                     const loadingContainer = document.getElementById("loading-container");
                     modal.classList.add("show");
-                    modalImg.src = img.src;
+                    modalImg.src = imgEl.src;
                     loadingContainer.style.display = "flex";
                     const originalImg = new Image();
                     originalImg.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`;
@@ -479,10 +524,20 @@
                         loadingContainer.style.display = "none";
                     };
                 };
-                // 图片加载完成后更新瀑布流位置
-                img.onload = positionThumbnails;
-                waterfall.appendChild(img);
+                // 使用onload仅更新布局后调用定位函数
+                imgEl.onload = positionThumbnails;
+                waterfall.appendChild(imgEl);
             });
+            // 延时设置真实图片src，确保尺寸已确定
+            setTimeout(() => {
+                 document.querySelectorAll(".thumbnail").forEach(imgEl => {
+                     if (!imgEl.src) {
+                        imgEl.src = imgEl.dataset.src;
+                     }
+                 });
+                 // 再次更新布局，防止图片加载后尺寸变化
+                 setTimeout(updateGalleryLayout, 100);
+            }, 100);
         }
 
         function draw(delta) {
@@ -531,17 +586,25 @@
                 modalImg.classList.toggle("enlarged");
             };
 
-            // 选取随机图片用于 canvas 动画
+            // 配置slider并更新初始布局
+            slider.min = 1;
+            slider.max = 10;
+            slider.step = 1;
+            slider.value = 6; // 默认每行5张（中图）
+            updateGalleryLayout();
+
+            // 选取随机图片用于canvas动画
             const randomImage = data[Math.floor(Math.random() * data.length)];
             img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${randomImage.fullsize_path}`;
 
-            // 设置 canvas
+            // 设置canvas
             canvas = document.getElementById("canvas");
             context = canvas.getContext("2d");
 
             img.onload = () => {
-                canvas.width = document.getElementById("gallery").clientWidth;
-                canvas.height = document.getElementById("gallery").clientHeight;
+                const gallery = document.getElementById("gallery");
+                canvas.width = gallery.clientWidth;
+                canvas.height = gallery.clientHeight;
                 animate();
             };
         });

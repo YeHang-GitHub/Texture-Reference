@@ -304,13 +304,11 @@
                     item.style.display = "flex"; // Use flexbox for alignment
                     item.style.justifyContent = "space-between"; // Align text and count
 
-                    // Determine if the folder is a parent or the deepest folder
                     const isDeepestFolder = !Object.keys(tree[key]).some(subKey => typeof tree[key][subKey] === 'object' && !tree[key][subKey].name);
                     const photoCount = tree[key].name ? 0 : countPhotosInFolder(`${currentPath}/${key}`, data);
                     const folderName = document.createElement("span");
                     folderName.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key;
 
-                    // Add photo count to folder names
                     const countSpan = document.createElement("span");
                     countSpan.style.color = "#aaa";
                     countSpan.textContent = tree[key].name ? "" : `(${photoCount})`;
@@ -319,54 +317,67 @@
                     item.appendChild(countSpan);
 
                     if (!tree[key].name) {
-                        const subContainer = document.createElement("div");
-                        subContainer.classList.add("hidden");
+                        if (isDeepestFolder) {
+                            // Do not allow deepest folder to expand/collapse
+                            item.onclick = (event) => {
+                                event.stopPropagation();
+                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                                item.classList.add('selected');
+                                const newPath = `${currentPath}/${key}`;
+                                displayImagesInFolder(newPath, data);
+                                document.getElementById("canvas-container").style.display = "none";
+                            };
+                            container.appendChild(item);
+                        } else {
+                            // For parent folders with subfolders, allow expand/collapse
+                            const subContainer = document.createElement("div");
+                            subContainer.classList.add("hidden");
 
-                        item.onclick = (event) => {
-                            event.stopPropagation();
-                            document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                            item.classList.add('selected');
-                            // Animate expand/collapse
-                            if (window.getComputedStyle(subContainer).display === 'none') {
-                                // Expand
-                                subContainer.style.display = 'block';
-                                const height = subContainer.scrollHeight;
-                                subContainer.style.height = '0px';
-                                setTimeout(() => {
-                                    subContainer.style.transition = 'height 0.3s ease';
-                                    subContainer.style.height = height + 'px';
-                                }, 10);
-                                subContainer.addEventListener('transitionend', function clearHeight(e) {
-                                    if (e.propertyName === 'height') {
-                                        subContainer.style.height = 'auto';
-                                        subContainer.style.transition = '';
-                                        subContainer.removeEventListener('transitionend', clearHeight);
-                                    }
-                                });
-                            } else {
-                                // Collapse
-                                const height = subContainer.scrollHeight;
-                                subContainer.style.height = height + 'px';
-                                setTimeout(() => {
-                                    subContainer.style.transition = 'height 0.3s ease';
+                            item.onclick = (event) => {
+                                event.stopPropagation();
+                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                                item.classList.add('selected');
+                                // Animate expand/collapse
+                                if (window.getComputedStyle(subContainer).display === 'none') {
+                                    // Expand
+                                    subContainer.style.display = 'block';
+                                    const height = subContainer.scrollHeight;
                                     subContainer.style.height = '0px';
-                                }, 10);
-                                subContainer.addEventListener('transitionend', function hide(e) {
-                                    if (e.propertyName === 'height') {
-                                        subContainer.style.display = 'none';
-                                        subContainer.style.transition = '';
-                                        subContainer.removeEventListener('transitionend', hide);
-                                    }
-                                });
-                            }
-                            const newPath = `${currentPath}/${key}`;
-                            displayImagesInFolder(newPath, data);
-                            document.getElementById("canvas-container").style.display = "none";
-                        };
-
-                        container.appendChild(item);
-                        container.appendChild(subContainer);
-                        buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
+                                    setTimeout(() => {
+                                        subContainer.style.transition = 'height 0.3s ease';
+                                        subContainer.style.height = height + 'px';
+                                    }, 10);
+                                    subContainer.addEventListener('transitionend', function clearHeight(e) {
+                                        if (e.propertyName === 'height') {
+                                            subContainer.style.height = 'auto';
+                                            subContainer.style.transition = '';
+                                            subContainer.removeEventListener('transitionend', clearHeight);
+                                        }
+                                    });
+                                } else {
+                                    // Collapse
+                                    const height = subContainer.scrollHeight;
+                                    subContainer.style.height = height + 'px';
+                                    setTimeout(() => {
+                                        subContainer.style.transition = 'height 0.3s ease';
+                                        subContainer.style.height = '0px';
+                                    }, 10);
+                                    subContainer.addEventListener('transitionend', function hide(e) {
+                                        if (e.propertyName === 'height') {
+                                            subContainer.style.display = 'none';
+                                            subContainer.style.transition = '';
+                                            subContainer.removeEventListener('transitionend', hide);
+                                        }
+                                    });
+                                }
+                                const newPath = `${currentPath}/${key}`;
+                                displayImagesInFolder(newPath, data);
+                                document.getElementById("canvas-container").style.display = "none";
+                            };
+                            container.appendChild(item);
+                            container.appendChild(subContainer);
+                            buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
+                        }
                     } else {
                         item.onclick = () => {
                             displayImagesInFolder(tree[key].fullsize_path, data);

@@ -223,9 +223,21 @@
         #waterfall {
             position: relative;
             width: 100%;
-            /* 高度由 JS 动态设置 */
+        }
+
+        .fancybox__button--close {
+            display: none !important;
+        }
+        .fancybox__button--close svg {
+            display: none !important;
+        }
+
+        .carousel__button.is-close {
+            display: none !important;
         }
     </style>
+    <!-- 修改：更新 Fancybox CSS 引入地址 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GLM7S1QFLN"></script>
@@ -318,7 +330,8 @@
 
                     const countSpan = document.createElement("span");
                     countSpan.style.color = "#aaa";
-                    countSpan.textContent = tree[key].name ? "" : `(${photoCount})`;
+                    countSpan.style.fontWeight = "normal"; // 让数字不加粗
+                    countSpan.textContent = tree[key].name ? "" : photoCount;
 
                     item.appendChild(folderName);
                     item.appendChild(countSpan);
@@ -446,6 +459,7 @@
             // 实际每行图片数 = (slider.max - slider.value + slider.min)
             const numImagesPerRow = parseInt(slider.max, 10) - parseInt(slider.value, 10) + parseInt(slider.min, 10);
             const waterfall = document.getElementById("waterfall");
+            if (!waterfall) return; // 新增：如果瀑布流容器不存在，则退出
             const containerWidth = waterfall.clientWidth;
             // 计算每张图片宽度，取整避免小数误差
             const newWidth = Math.floor((containerWidth - gap * (numImagesPerRow - 1)) / numImagesPerRow);
@@ -480,22 +494,40 @@
             updateGalleryLayout();
         });
 
+        // 新增：通过 XMLHttpRequest 加载图片，并逐步回调进度
+        function loadImageWithProgress(url, onProgress, onComplete, onError) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "blob";
+            xhr.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    onProgress(percentComplete);
+                }
+            };
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    onComplete(xhr.response);
+                } else {
+                    onError(new Error("Status: " + xhr.status));
+                }
+            };
+            xhr.onerror = function() {
+                onError(new Error("XHR error"));
+            };
+            xhr.send();
+        }
+
         async function displayImagesInFolder(folderPath, data) {
             const gallery = document.getElementById("gallery");
             gallery.innerHTML = "";
-            // 创建内部容器用于瀑布流布局
             const waterfall = document.createElement("div");
             waterfall.id = "waterfall";
             gallery.appendChild(waterfall);
-            
-            // 先更新布局，预先计算好图片宽度
             updateGalleryLayout();
-            
             const files = collectImagesFromFolder(folderPath, data);
-            console.log(`Displaying images for folder: ${folderPath}`, files);
+            console.log("Debug: files to display", files);
             document.getElementById("slider-container").style.display = "flex";
-            
-            // 根据当前slider值计算每行图片数和目标宽度
             const gap = 10;
             const slider = document.getElementById("slider");
             const numImagesPerRow = parseInt(slider.max, 10) - parseInt(slider.value, 10) + parseInt(slider.min, 10);
@@ -505,39 +537,28 @@
             files.forEach(file => {
                 const imgEl = document.createElement("img");
                 imgEl.classList.add("thumbnail");
-                // 预先设定尺寸占位
                 imgEl.style.width = targetWidth + "px";
                 imgEl.style.height = "auto";
-                // 存储实际图片地址，延迟加载
-                imgEl.dataset.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
-                imgEl.onclick = () => {
-                    const modal = document.getElementById("myModal");
-                    const modalImg = document.getElementById("img01");
-                    const loadingContainer = document.getElementById("loading-container");
-                    modal.classList.add("show");
-                    modalImg.src = imgEl.src;
-                    loadingContainer.style.display = "flex";
-                    const originalImg = new Image();
-                    originalImg.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`;
-                    originalImg.onload = () => {
-                        modalImg.src = originalImg.src;
-                        loadingContainer.style.display = "none";
-                    };
+                // 显示缩略图
+                imgEl.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
+                console.log("Debug: thumbnail src =", imgEl.src);
+                imgEl.onerror = (e) => {
+                    console.error("Error loading thumbnail for", file.thumbnail_path, "URL:", imgEl.src, e);
                 };
-                // 使用onload仅更新布局后调用定位函数
-                imgEl.onload = positionThumbnails;
-                waterfall.appendChild(imgEl);
+                imgEl.onload = () => {
+                    positionThumbnails();
+                    console.log("Debug: thumbnail loaded", file.thumbnail_path);
+                };
+
+                const aEl = document.createElement("a");
+                // 使用 Fancybox 处理，并设置必需的属性
+                aEl.setAttribute("data-fancybox", "gallery");
+                aEl.setAttribute("data-type", "image");
+                aEl.setAttribute("data-src", `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`);
+                aEl.setAttribute("data-original", `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`);
+                aEl.appendChild(imgEl);
+                waterfall.appendChild(aEl);
             });
-            // 延时设置真实图片src，确保尺寸已确定
-            setTimeout(() => {
-                 document.querySelectorAll(".thumbnail").forEach(imgEl => {
-                     if (!imgEl.src) {
-                        imgEl.src = imgEl.dataset.src;
-                     }
-                 });
-                 // 再次更新布局，防止图片加载后尺寸变化
-                 setTimeout(updateGalleryLayout, 100);
-            }, 100);
         }
 
         function draw(delta) {
@@ -608,6 +629,12 @@
                 animate();
             };
         });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
+    <script>
+      Fancybox.bind("[data-fancybox='gallery']", {
+          Toolbar: false,  // 禁用右上角工具栏
+      });
     </script>
 
 </body>

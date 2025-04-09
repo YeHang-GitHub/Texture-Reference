@@ -39,53 +39,95 @@
             height: 5px;
             margin-left: 10px;
         }
-        #ko-fi-button {
-            margin-left: 10px;
+        #info-button {
+            background: none;
+            border: none;
             cursor: pointer;
-            transition: transform 0.2s;
-            height: 30px; /* Set height to 38px */
-            position: relative; /* Add this line */
-            top: 3px; /* Move down 5px */
-            left: 5px; /* Move right 5px */
+            color: white;
+            font-size: 1.5em;
+            margin-left: 5px;
         }
-        #ko-fi-button:hover {
-            transform: scale(1.1);
-        }
-        #ko-fi-button-container {
-            position: relative;
-            display: inline-block;
-        }
-        #ko-fi-button-container:hover #ko-fi-tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-        #ko-fi-tooltip {
-            visibility: hidden;
-            width: auto; /* Adjust width to auto */
-            max-width: 150px; /* Set a max-width */
+        /* 信息窗口样式 */
+        #info-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background-color: #333;
-            color: #fff;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 500px; /* 调整宽度 */
             text-align: center;
-            border-radius: 6px;
-            padding: 5px 10px; /* Add padding to ensure message fits in one line */
-            position: absolute;
-            z-index: 1;
-            top: 125%; /* Position below the button */
-            left: 0%; /* Move left by 10px */
-            transform: translateX(-50%); /* Center the tooltip */
-            opacity: 0;
-            transition: opacity 0.3s;
-            white-space: nowrap; /* Ensure the message stays on one line */
         }
-        #ko-fi-tooltip::after {
-            content: "";
+        #info-modal h2 {
+            margin-top: 0;
+        }
+        #info-modal h3 {
+            text-align: left;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        #info-modal .row {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        #info-modal .row a {
+            color: #4db8ff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        #info-modal .row a:hover {
+            text-decoration: underline;
+        }
+        #info-modal .row a img {
+            width: auto; /* 保持正常比例 */
+            height: 20px;
+            margin-right: 5px;
+        }
+        #info-modal .license {
+            margin-top: 20px;
+            font-size: 0.8em; /* 字体更小 */
+            color: #aaa;
+            text-align: left;
+        }
+        #info-modal-close {
             position: absolute;
-            bottom: 100%; /* Arrow at the top */
-            left: 70%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent transparent #333 transparent;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        #info-modal-close:hover {
+            color: #f00;
+        }
+        #alipay-preview {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 1000;
+            width: 200px; /* 设置宽度至少为 200px */
+            top: 100%; /* 调整位置到按钮下方 */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #alipay-preview img {
+            width: 100%; /* 确保图片适应容器宽度 */
+            border-radius: 10px;
+        }
+        #alipay-container:hover #alipay-preview {
+            display: block; /* 确保鼠标悬停时显示 */
         }
         /* #content 占据顶部栏下剩余区域，并隐藏自身滚动 */
         #content {
@@ -235,9 +277,28 @@
         .carousel__button.is-close {
             display: none !important;
         }
+
+        /* 支付宝二维码窗口样式 */
+        #alipay-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+        #alipay-modal img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
+    <!-- 引入 Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GLM7S1QFLN"></script>
@@ -255,12 +316,10 @@
         <div id="header">Texture Reference</div>
         <div id="slider-container">
             <input type="range" id="slider" min="50" max="250" value="100">
-            <div id="ko-fi-button-container">
-                <a href="https://ko-fi.com/yehang" target="_blank">
-                    <img id="ko-fi-button" src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi">
-                </a>
-                <div id="ko-fi-tooltip">Buy me a coffee ~</div>
-            </div>
+            <!-- 使用 Font Awesome 的 "i" 图标，右移 5px -->
+            <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 20px;">
+                <i class="fas fa-info-circle"></i>
+            </button>
         </div>
     </div>
     <div id="content">
@@ -278,11 +337,68 @@
         </div>
         <img class="modal-content" id="img01">
     </div>
+    <div id="info-modal">
+        <button id="info-modal-close">✖</button>
+        <h2>About</h2>
+        <!-- 第一栏：社交媒体 -->
+        <h3>About Me</h3>
+        <div class="row">
+            <a href="https://x.com/YeHangHarry" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124021.png" alt="Twitter"> Twitter
+            </a>
+            <a href="https://www.artstation.com/ye-hang" target="_blank">
+                <img src="https://cdn.brandfetch.io/artstation.com/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed" alt="ArtStation"> ArtStation
+            </a>
+            <a href="https://www.linkedin.com/in/hang-ye?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank">
+                <i class="fab fa-linkedin"></i> LinkedIn
+            </a>
+        </div>
+        <!-- 第二栏：赞助信息 -->
+        <h3>Support Me</h3>
+        <div class="row">
+            <a href="https://ko-fi.com/yehang" target="_blank">
+                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi"> Ko-fi
+            </a>
+            <div id="alipay-container" style="position: relative; display: inline-block;">
+                <a href="javascript:void(0)" id="alipay-button">
+                    <img src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/13_Alipay_logo_logos-512.png" alt="Alipay"> Alipay
+                </a>
+                <div id="alipay-preview">
+                    <img src="https://i.imgur.com/vPykp9X.jpeg" alt="Alipay QR Code">
+                </div>
+            </div>
+        </div>
+        <!-- 第三栏：证书信息 -->
+        <div class="license">
+            <strong>MIT License</strong><br>
+            Copyright (c) 2025 Ye Hang<br><br>
+            Permission is hereby granted, free of charge, to any person obtaining a copy
+            of this software and associated documentation files (the "Software"), to deal
+            in the Software without restriction, including without limitation the rights
+            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the Software is
+            furnished to do so, subject to the following conditions:<br><br>
+            The above copyright notice and this permission notice shall be included in all
+            copies or substantial portions of the Software.<br><br>
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+            SOFTWARE.
+        </div>
+    </div>
+    <!-- 支付宝二维码窗口 -->
+    <div id="alipay-modal">
+        <img src="https://i.imgur.com/vPykp9X.jpeg" alt="Alipay QR Code">
+    </div>
 
     <script>
         const jsonUrl = 'https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/directory_cache.json';
         let totalSeconds = 0;
         let img = new Image();
+        img.crossOrigin = "anonymous";
         let canvas, context;
 
         async function fetchJsonData(url) {
@@ -536,6 +652,7 @@
             
             files.forEach(file => {
                 const imgEl = document.createElement("img");
+                imgEl.crossOrigin = "anonymous"; // 新增：添加跨域属性
                 imgEl.classList.add("thumbnail");
                 imgEl.style.width = targetWidth + "px";
                 imgEl.style.height = "auto";
@@ -628,6 +745,22 @@
                 canvas.height = gallery.clientHeight;
                 animate();
             };
+
+            document.getElementById("info-button").addEventListener("click", () => {
+                document.getElementById("info-modal").style.display = "block";
+            });
+
+            document.getElementById("info-modal-close").addEventListener("click", () => {
+                document.getElementById("info-modal").style.display = "none";
+            });
+
+            document.getElementById("alipay-button").addEventListener("click", () => {
+                document.getElementById("alipay-modal").style.display = "block";
+            });
+
+            document.getElementById("alipay-modal").addEventListener("click", () => {
+                document.getElementById("alipay-modal").style.display = "none";
+            });
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>

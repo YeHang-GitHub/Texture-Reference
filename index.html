@@ -314,6 +314,16 @@
         #support-button {
             margin-top: -5px; /* Move the Ko-fi button in the top-right corner upward */
             font-size: 1.6em; /* Slightly increase the size */
+            animation: pulse-rotate 1s infinite ease-in-out; /* Add animation */
+        }
+
+        @keyframes pulse-rotate {
+            0%, 100% {
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.1) rotate(5deg);
+            }
         }
         #alipay-container a, #wechat-container a, .row a {
             text-decoration: none; /* Remove underline from links */

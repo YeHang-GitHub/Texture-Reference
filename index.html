@@ -329,7 +329,7 @@
             <canvas id="canvas"></canvas> <!-- Add canvas for animation -->
         </div>
     </div>
-    <div id="error-message" class="error-message">Website is busy, please come back 1 hour later</div>
+    <div id="error-message" class="error-message"></div>
     <div id="myModal" class="modal">
         <div class="loading-container" id="loading-container">
             <div class="loading" id="loading"></div>
@@ -395,6 +395,12 @@
     </div>
 
     <script>
+        function showError(message) {
+            const errorMessage = document.getElementById("error-message");
+            errorMessage.textContent = `${message} Try using a VPN if you are in China, or use another browser.`;
+            errorMessage.style.display = "block";
+        }
+
         const jsonUrl = 'https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/directory_cache.json';
         let totalSeconds = 0;
         let img = new Image();
@@ -402,15 +408,32 @@
         let canvas, context;
 
         async function fetchJsonData(url) {
+            const timeout = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error("Timeout: Directory loading took too long.")), 15000); // 15 seconds timeout
+            });
+
             try {
-                const response = await fetch(url);
+                const response = await Promise.race([fetch(url), timeout]);
                 if (!response.ok) {
+                    if (response.status === 404) {
+                        showError("Error 404: Data not found. Please check the URL.");
+                    } else if (response.status === 500) {
+                        showError("Error 500: Server error. Please try again later.");
+                    } else {
+                        showError(`HTTP error! Status: ${response.status}`);
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             } catch (error) {
                 console.error(error);
-                document.getElementById("error-message").style.display = "block";
+                if (error.message.includes("Timeout")) {
+                    showError("The directory is taking too long to load. Try using a VPN if you are in China.");
+                } else if (!navigator.onLine) {
+                    showError("Network error: Please check your internet connection.");
+                } else {
+                    showError("An unexpected error occurred. Please try again later.");
+                }
                 throw error;
             }
         }

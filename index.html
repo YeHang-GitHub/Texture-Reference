@@ -324,6 +324,13 @@
         #wechat-container {
             margin-right: 0; /* Ensure no extra margin after WeChat */
         }
+        #support-modal {
+            /* ...existing code... */
+            top: calc(50% - 20px); /* Move the modal 20px upward */
+        }
+        #ethereum-preview, #bitcoin-preview {
+            top: 100%; /* Revert floating previews to their original position below the button */
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
@@ -410,7 +417,7 @@
             SOFTWARE.
         </div>
     </div>
-    <div id="support-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #333; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px; text-align: center;">
+    <div id="support-modal" style="display: none; position: fixed; top: calc(50% - 20px); left: 50%; transform: translate(-50%, -50%); background-color: #333; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px; text-align: center;">
         <button id="support-modal-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">✖</button>
         <h2 style="margin-top: -10px;">Support Me</h2> <!-- Move "Support Me" text slightly upward -->
         <h3>支付宝和微信</h3>
@@ -444,7 +451,7 @@
                 <a href="javascript:void(0)" id="ethereum-button">
                     <img src="https://i.imgur.com/kAd6l2P.png" alt="Ethereum" style="height: 20px; vertical-align: middle;"> Ethereum
                 </a>
-                <div id="ethereum-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: -220%; left: 50%; transform: translateX(-50%);">
+                <div id="ethereum-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: 100%; left: 50%; transform: translateX(-50%);">
                     <img src="https://i.imgur.com/B9mu70B.jpeg" alt="Ethereum QR Code" style="width: 100%; border-radius: 10px;">
                     <p style="color: white; font-size: 0.8em; margin-top: 10px; word-wrap: break-word;">0xc4eDe5114900936CDED17814dE9600D1b93B768D</p>
                     <button onclick="copyToClipboard('0xc4eDe5114900936CDED17814dE9600D1b93B768D')" style="background-color: #4db8ff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em;">Copy</button>
@@ -454,7 +461,7 @@
                 <a href="javascript:void(0)" id="bitcoin-button">
                     <img src="https://i.imgur.com/vFW3vTz.png" alt="Bitcoin" style="height: 20px; vertical-align: middle;"> Bitcoin
                 </a>
-                <div id="bitcoin-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: -220%; left: 50%; transform: translateX(-50%);">
+                <div id="bitcoin-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: 100%; left: 50%; transform: translateX(-50%);">
                     <img src="https://i.imgur.com/tk6r9bB.jpeg" alt="Bitcoin QR Code" style="width: 100%; border-radius: 10px;">
                     <p style="color: white; font-size: 0.8em; margin-top: 10px; word-wrap: break-word;">1McqvC4u6Lbxip5oaZHXQBqEFshjAJj8XQ</p>
                     <button onclick="copyToClipboard('1McqvC4u6Lbxip5oaZHXQBqEFshjAJj8XQ')" style="background-color: #4db8ff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em;">Copy</button>

@@ -23,7 +23,7 @@
             justify-content: space-between;
             align-items: center;
             background-color: #333;
-            padding: 0 20px;
+            padding: 0 20px 0 13px; /* Reduce left padding to 3px */
             height: 50px;
             flex-shrink: 0;
         }
@@ -326,7 +326,7 @@
         }
         #support-modal {
             /* ...existing code... */
-            top: calc(50% - 20px); /* Move the modal 20px upward */
+            top: calc(50% - 35px); /* Move the modal 15px further upward */
         }
         #ethereum-preview, #bitcoin-preview {
             top: 100%; /* Revert floating previews to their original position below the button */
@@ -351,7 +351,7 @@
 
     <div id="topbar">
         <div id="header">
-            <img src="assets/images/logo.png" alt="Logo" style="height: 30px; vertical-align: middle; margin-right: 10px;">
+            <img src="assets/images/logo.png" alt="Logo" style="height: 30px; vertical-align: middle; margin-right: 3px;">
             Texture Reference
         </div>
         <div id="slider-container">
@@ -417,9 +417,12 @@
             SOFTWARE.
         </div>
     </div>
-    <div id="support-modal" style="display: none; position: fixed; top: calc(50% - 20px); left: 50%; transform: translate(-50%, -50%); background-color: #333; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px; text-align: center;">
+    <div id="support-modal" style="display: none; position: fixed; top: calc(50% - 55px); left: 50%; transform: translate(-50%, -50%); background-color: #333; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px; text-align: center;">
         <button id="support-modal-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">✖</button>
         <h2 style="margin-top: -10px;">Support Me</h2> <!-- Move "Support Me" text slightly upward -->
+        <p style="margin-top: 10px; font-size: 0.9em; color: #ccc;">
+            Hope you like the site! I’ve put in a lot of time, gear, and travel to make it happen. If it’s been helpful, feel free to buy me a coffee ☕️ ^-^
+        </p>
         <h3>支付宝和微信</h3>
         <div class="row">
             <div id="alipay-container" style="position: relative; display: inline-block; margin-top: 10px;">
@@ -447,7 +450,7 @@
         </div>
         <h3 style="margin-top: 20px;">Crypto Wallet</h3>
         <div class="row">
-            <div id="ethereum-container" style="position: relative; display: inline-block; margin-top: 10px;">
+            <div id="ethereum-container" style="position: relative; display: inline-block; margin-top: 10px; margin-right: 10px;">
                 <a href="javascript:void(0)" id="ethereum-button">
                     <img src="https://i.imgur.com/kAd6l2P.png" alt="Ethereum" style="height: 20px; vertical-align: middle;"> Ethereum
                 </a>
@@ -471,9 +474,6 @@
     </div>
     <!-- 支付宝二维码窗口 -->
     <div id="alipay-modal">
-        <img src="https://i.imgur.com/vPykp9X.jpeg" alt="Alipay QR Code">
-    </div>
-
     <script>
         function showError(message) {
             const errorMessage = document.getElementById("error-message");

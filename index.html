@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Texture Reference</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
     <style>
         /* Body 设置固定高度，不滚动，滚动条由内部区域控制 */
         body {
@@ -294,12 +295,41 @@
             max-width: 100%;
             border-radius: 10px;
         }
+        a, #info-button, #support-button, .folder, .file {
+            cursor: pointer; /* 鼠标悬停时显示为可点击的形状 */
+        }
+        #support-modal h2 {
+            margin-bottom: 10px; /* Slightly reduce spacing below "Support Me" */
+        }
+        #support-modal h3 {
+            text-align: left; /* Align subtitles to the left */
+            margin-left: 10px; /* Add some left margin for better alignment */
+        }
+        #info-button, #support-button {
+            transition: transform 0.2s ease; /* Add hover animation */
+        }
+        #info-button:hover, #support-button:hover {
+            transform: scale(1.1); /* Slightly enlarge on hover */
+        }
+        #support-button {
+            margin-top: -5px; /* Move the Ko-fi button in the top-right corner upward */
+            font-size: 1.6em; /* Slightly increase the size */
+        }
+        #alipay-container a, #wechat-container a, .row a {
+            text-decoration: none; /* Remove underline from links */
+        }
+        #alipay-container, #wechat-container {
+            margin-right: 10px; /* Add 10px gap between Alipay and WeChat */
+        }
+        #wechat-container {
+            margin-right: 0; /* Ensure no extra margin after WeChat */
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
     <!-- 引入 Font Awesome 图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+</head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GLM7S1QFLN"></script>
 <script>
@@ -313,12 +343,18 @@
 <body>
 
     <div id="topbar">
-        <div id="header">Texture Reference</div>
+        <div id="header">
+            <img src="assets/images/logo.png" alt="Logo" style="height: 30px; vertical-align: middle; margin-right: 10px;">
+            Texture Reference
+        </div>
         <div id="slider-container">
             <input type="range" id="slider" min="50" max="250" value="100">
-            <!-- 使用 Font Awesome 的 "i" 图标，右移 5px -->
+            <!-- 修改：分成两个按钮 -->
             <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 20px;">
                 <i class="fas fa-info-circle"></i>
+            </button>
+            <button id="support-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 10px;">
+                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 20px; vertical-align: middle;">
             </button>
         </div>
     </div>
@@ -353,22 +389,7 @@
                 <i class="fab fa-linkedin"></i> LinkedIn
             </a>
         </div>
-        <!-- 第二栏：赞助信息 -->
-        <h3>Support Me</h3>
-        <div class="row">
-            <a href="https://ko-fi.com/yehang" target="_blank">
-                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi"> Ko-fi
-            </a>
-            <div id="alipay-container" style="position: relative; display: inline-block;">
-                <a href="javascript:void(0)" id="alipay-button">
-                    <img src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/13_Alipay_logo_logos-512.png" alt="Alipay"> Alipay
-                </a>
-                <div id="alipay-preview">
-                    <img src="https://i.imgur.com/vPykp9X.jpeg" alt="Alipay QR Code">
-                </div>
-            </div>
-        </div>
-        <!-- 第三栏：证书信息 -->
+        <!-- 第二栏：证书信息 -->
         <div class="license">
             <strong>MIT License</strong><br>
             Copyright (c) 2025 Ye Hang<br><br>
@@ -387,6 +408,35 @@
             LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
             OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
             SOFTWARE.
+        </div>
+    </div>
+    <div id="support-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #333; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px; text-align: center;">
+        <button id="support-modal-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">✖</button>
+        <h2 style="margin-top: -10px;">Support Me</h2> <!-- Move "Support Me" text slightly upward -->
+        <h3>支付宝和微信</h3>
+        <div class="row">
+            <div id="alipay-container" style="position: relative; display: inline-block; margin-top: 10px;">
+                <a href="javascript:void(0)" id="alipay-button">
+                    <img src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/13_Alipay_logo_logos-512.png" alt="Alipay" style="height: 20px; vertical-align: middle;"> Alipay
+                </a>
+                <div id="alipay-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: 100%; left: 50%; transform: translateX(-50%);">
+                    <img src="https://i.imgur.com/vPykp9X.jpeg" alt="Alipay QR Code" style="width: 100%; border-radius: 10px;">
+                </div>
+            </div>
+            <div id="wechat-container" style="position: relative; display: inline-block; margin-top: 10px;">
+                <a href="javascript:void(0)" id="wechat-button">
+                    <img src="https://i.imgur.com/rGACBF9.png" alt="WeChat" style="height: 20px; vertical-align: middle;"> WeChat
+                </a>
+                <div id="wechat-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: 100%; left: 50%; transform: translateX(-50%);">
+                    <img src="https://i.imgur.com/crP3i0z.jpeg" alt="WeChat QR Code" style="width: 100%; border-radius: 10px;">
+                </div>
+            </div>
+        </div>
+        <h3 style="margin-top: 20px;">Ko-fi</h3>
+        <div class="row">
+            <a href="https://ko-fi.com/yehang" target="_blank">
+                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 20px; vertical-align: middle;"> Ko-fi
+            </a>
         </div>
     </div>
     <!-- 支付宝二维码窗口 -->
@@ -609,7 +659,7 @@
             positionThumbnails();
             // 更新 canvas 尺寸
             const gallery = document.getElementById("gallery");
-            if (canvas) {
+if (canvas) {
                 canvas.width = gallery.clientWidth;
                 canvas.height = gallery.clientHeight;
             }
@@ -777,12 +827,40 @@
                 document.getElementById("info-modal").style.display = "none";
             });
 
+            document.getElementById("support-button").addEventListener("click", () => {
+                document.getElementById("support-modal").style.display = "block";
+            });
+
+            document.getElementById("support-modal-close").addEventListener("click", () => {
+                document.getElementById("support-modal").style.display = "none";
+            });
+
             document.getElementById("alipay-button").addEventListener("click", () => {
                 document.getElementById("alipay-modal").style.display = "block";
             });
 
             document.getElementById("alipay-modal").addEventListener("click", () => {
                 document.getElementById("alipay-modal").style.display = "none";
+            });
+
+            const alipayContainer = document.getElementById("alipay-container");
+            const alipayPreview = document.getElementById("alipay-preview");
+
+            alipayContainer.addEventListener("mouseenter", () => {
+                alipayPreview.style.display = "block";
+            });
+
+            alipayContainer.addEventListener("mouseleave", () => {
+                alipayPreview.style.display = "none";
+            });
+
+            const wechatContainer = document.getElementById("wechat-container");
+            const wechatPreview = document.getElementById("wechat-preview");
+            wechatContainer.addEventListener("mouseenter", () => {
+                wechatPreview.style.display = "block";
+            });
+            wechatContainer.addEventListener("mouseleave", () => {
+                wechatPreview.style.display = "none";
             });
         });
     </script>

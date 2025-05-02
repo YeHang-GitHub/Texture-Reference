@@ -438,6 +438,29 @@
                 <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 20px; vertical-align: middle;"> Ko-fi
             </a>
         </div>
+        <h3 style="margin-top: 20px;">Crypto Wallet</h3>
+        <div class="row">
+            <div id="ethereum-container" style="position: relative; display: inline-block; margin-top: 10px;">
+                <a href="javascript:void(0)" id="ethereum-button">
+                    <img src="https://i.imgur.com/kAd6l2P.png" alt="Ethereum" style="height: 20px; vertical-align: middle;"> Ethereum
+                </a>
+                <div id="ethereum-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: -220%; left: 50%; transform: translateX(-50%);">
+                    <img src="https://i.imgur.com/B9mu70B.jpeg" alt="Ethereum QR Code" style="width: 100%; border-radius: 10px;">
+                    <p style="color: white; font-size: 0.8em; margin-top: 10px; word-wrap: break-word;">0xc4eDe5114900936CDED17814dE9600D1b93B768D</p>
+                    <button onclick="copyToClipboard('0xc4eDe5114900936CDED17814dE9600D1b93B768D')" style="background-color: #4db8ff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em;">Copy</button>
+                </div>
+            </div>
+            <div id="bitcoin-container" style="position: relative; display: inline-block; margin-top: 10px;">
+                <a href="javascript:void(0)" id="bitcoin-button">
+                    <img src="https://i.imgur.com/vFW3vTz.png" alt="Bitcoin" style="height: 20px; vertical-align: middle;"> Bitcoin
+                </a>
+                <div id="bitcoin-preview" style="display: none; position: absolute; background-color: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 10px; z-index: 1000; width: 200px; top: -220%; left: 50%; transform: translateX(-50%);">
+                    <img src="https://i.imgur.com/tk6r9bB.jpeg" alt="Bitcoin QR Code" style="width: 100%; border-radius: 10px;">
+                    <p style="color: white; font-size: 0.8em; margin-top: 10px; word-wrap: break-word;">1McqvC4u6Lbxip5oaZHXQBqEFshjAJj8XQ</p>
+                    <button onclick="copyToClipboard('1McqvC4u6Lbxip5oaZHXQBqEFshjAJj8XQ')" style="background-color: #4db8ff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em;">Copy</button>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- 支付宝二维码窗口 -->
     <div id="alipay-modal">
@@ -862,7 +885,33 @@ if (canvas) {
             wechatContainer.addEventListener("mouseleave", () => {
                 wechatPreview.style.display = "none";
             });
+
+            const ethereumContainer = document.getElementById("ethereum-container");
+            const ethereumPreview = document.getElementById("ethereum-preview");
+            ethereumContainer.addEventListener("mouseenter", () => {
+                ethereumPreview.style.display = "block";
+            });
+            ethereumContainer.addEventListener("mouseleave", () => {
+                ethereumPreview.style.display = "none";
+            });
+
+            const bitcoinContainer = document.getElementById("bitcoin-container");
+            const bitcoinPreview = document.getElementById("bitcoin-preview");
+            bitcoinContainer.addEventListener("mouseenter", () => {
+                bitcoinPreview.style.display = "block";
+            });
+            bitcoinContainer.addEventListener("mouseleave", () => {
+                bitcoinPreview.style.display = "none";
+            });
         });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Wallet address copied to clipboard!");
+            }).catch(err => {
+                console.error("Failed to copy text: ", err);
+            });
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
     <script>

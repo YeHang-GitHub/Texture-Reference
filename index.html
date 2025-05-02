@@ -29,6 +29,7 @@
         }
         #header {
             font-size: 1.5em;
+            margin-top: 5px; /* Move title down by 5px */
         }
         #slider-container {
             display: flex;
@@ -341,6 +342,43 @@
         #ethereum-preview, #bitcoin-preview {
             top: 100%; /* Revert floating previews to their original position below the button */
         }
+        #logo-tooltip, #info-tooltip, #support-tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 5px; /* Smaller padding */
+            border-radius: 5px;
+            font-size: 0.6em; /* Ensure smaller font size */
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        #logo:hover + #logo-tooltip,
+        #info-button:hover #info-tooltip,
+        #support-button:hover #support-tooltip {
+            display: block;
+        }
+        #info-tooltip, #support-tooltip {
+            top: 30px; /* Position below the buttons */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #logo-tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 5px; /* Smaller padding */
+            border-radius: 5px;
+            font-size: 0.6em !important; /* Explicitly set smaller font size */
+            top: 25px; /* Move 15px up */
+            left: 25px; /* Move 15px to the right */
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        #logo:hover + #logo-tooltip {
+            display: block;
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
@@ -360,18 +398,21 @@
 <body>
 
     <div id="topbar">
-        <div id="header">
-            <img src="assets/images/logo.png" alt="Logo" style="height: 30px; vertical-align: middle; margin-right: 3px;">
+        <div id="header" style="position: relative;">
+            <img id="logo" src="assets/images/logo.png" alt="Logo" style="height: 30px; vertical-align: middle; margin-right: 3px;">
+            <div id="logo-tooltip" style="top: 40px; left: 10px;">Meow～</div>
             Texture Reference
         </div>
         <div id="slider-container">
             <input type="range" id="slider" min="50" max="250" value="100">
             <!-- 修改：分成两个按钮 -->
-            <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 20px;">
+            <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 20px; position: relative;">
                 <i class="fas fa-info-circle"></i>
+                <div id="info-tooltip">About</div>
             </button>
-            <button id="support-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 10px;">
+            <button id="support-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 10px; position: relative;">
                 <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 20px; vertical-align: middle;">
+                <div id="support-tooltip">Support Me</div>
             </button>
         </div>
     </div>

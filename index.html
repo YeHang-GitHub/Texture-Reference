@@ -26,6 +26,7 @@
             padding: 0 20px 0 13px; /* Reduce left padding to 3px */
             height: 50px;
             flex-shrink: 0;
+            z-index: 100; /* Ensure topbar is above other elements */
         }
         #header {
             font-size: 1.5em;
@@ -35,6 +36,7 @@
             display: flex;
             align-items: center;
             position: relative;
+            z-index: 101; /* Ensure slider container is above canvas */
         }
         #slider {
             width: 175px;
@@ -160,7 +162,7 @@
             left: 222px; /* 左侧：200px 文件树 + 22px gap（可根据需要调整） */
             width: calc(100% - 222px);
             height: calc(100% - 50px);
-            z-index: 10;
+            z-index: 1; /* Lower z-index to ensure tooltips are above */
             pointer-events: none; /* 避免遮挡右侧画廊的滚动或点击 */
         }
         .folder {
@@ -362,6 +364,7 @@
             top: 30px; /* Position below the buttons */
             left: 50%;
             transform: translateX(-50%);
+            z-index: 102; /* Ensure tooltips are above slider container */
         }
         #logo-tooltip {
             display: none;
@@ -371,9 +374,9 @@
             padding: 2px 5px; /* Smaller padding */
             border-radius: 5px;
             font-size: 0.6em !important; /* Explicitly set smaller font size */
-            top: 25px; /* Move 15px up */
-            left: 25px; /* Move 15px to the right */
-            z-index: 1000;
+            top: 27px !important; /* Move 15px up */
+            left: 30px !important; /* Move 15px to the right */
+            z-index: 1001; /* Ensure it is above other elements */
             white-space: nowrap;
         }
         #logo:hover + #logo-tooltip {

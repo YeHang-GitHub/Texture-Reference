@@ -366,6 +366,10 @@
             transform: translateX(-50%);
             z-index: 102; /* Ensure tooltips are above slider container */
         }
+        #support-tooltip {
+            top: 35px !important; /* Move tooltip 5px further down */
+            font-size: 0.5em !important; /* Ensure smaller font size with !important */
+        }
         #logo-tooltip {
             display: none;
             position: absolute;
@@ -380,6 +384,28 @@
             white-space: nowrap;
         }
         #logo:hover + #logo-tooltip {
+            display: block;
+        }
+        #upload-tooltip,
+        #info-tooltip,
+        #support-tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-size: 0.6em;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 102;
+            white-space: nowrap;
+        }
+
+        #upload-button:hover #upload-tooltip,
+        #info-button:hover #info-tooltip,
+        #support-button:hover #support-tooltip {
             display: block;
         }
     </style>
@@ -408,14 +434,17 @@
         </div>
         <div id="slider-container">
             <input type="range" id="slider" min="50" max="250" value="100">
-            <!-- 修改：分成两个按钮 -->
-            <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 20px; position: relative;">
+            <button id="upload-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.3em; margin-left: 10px; position: relative; transition: transform 0.2s ease;">
+                <i class="fas fa-upload"></i>
+                <div id="upload-tooltip">Upload</div>
+            </button>
+            <button id="info-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 10px; position: relative;">
                 <i class="fas fa-info-circle"></i>
                 <div id="info-tooltip">About</div>
             </button>
-            <button id="support-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.5em; margin-left: 10px; position: relative;">
-                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 20px; vertical-align: middle;">
-                <div id="support-tooltip">Support Me</div>
+            <button id="support-button" style="background: none; border: none; cursor: pointer; color: white; font-size: 1.8em; margin-left: 10px; position: relative;">
+                <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi" style="height: 23px; vertical-align: middle;">
+                <div id="support-tooltip">Support</div>
             </button>
         </div>
     </div>
@@ -966,6 +995,23 @@ if (canvas) {
             });
             bitcoinContainer.addEventListener("mouseleave", () => {
                 bitcoinPreview.style.display = "none";
+            });
+
+            document.getElementById("upload-button").addEventListener("click", () => {
+                window.open("https://forms.gle/p6My2uknyRNDwBDN6", "_blank");
+            });
+
+            const uploadButton = document.getElementById("upload-button");
+            const uploadTooltip = document.getElementById("upload-tooltip");
+
+            uploadButton.addEventListener("mouseenter", () => {
+                uploadTooltip.style.display = "block";
+                uploadButton.style.transform = "scale(1.1)";
+            });
+
+            uploadButton.addEventListener("mouseleave", () => {
+                uploadTooltip.style.display = "none";
+                uploadButton.style.transform = "scale(1)";
             });
         });
 

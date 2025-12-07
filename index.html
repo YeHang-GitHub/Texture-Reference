@@ -846,7 +846,7 @@ if (canvas) {
                 imgEl.style.width = targetWidth + "px";
                 imgEl.style.height = "auto";
                 // 显示缩略图
-                imgEl.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`;
+                imgEl.src = `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.thumbnail_path}`;
                 console.log("Debug: thumbnail src =", imgEl.src);
                 imgEl.onerror = (e) => {
                     console.error("Error loading thumbnail for", file.thumbnail_path, "URL:", imgEl.src, e);
@@ -860,8 +860,8 @@ if (canvas) {
                 // 使用 Fancybox 处理，并设置必需的属性
                 aEl.setAttribute("data-fancybox", "gallery");
                 aEl.setAttribute("data-type", "image");
-                aEl.setAttribute("data-src", `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`);
-                aEl.setAttribute("data-original", `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.fullsize_path}`);
+                aEl.setAttribute("data-src",`https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.fullsize_path}`);
+                aEl.setAttribute("data-original", `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.fullsize_path}`);
                 aEl.appendChild(imgEl);
                 waterfall.appendChild(aEl);
             });

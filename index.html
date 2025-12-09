@@ -247,6 +247,30 @@
             margin-top: 18px;
             margin-bottom: 8px;
             position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #4db8ff 0%, #3498db 100%);
+            border-radius: 9px;
+            width: 0%;
+            transition: width 0.2s;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+        }
+        .progress-text {
+            color: #fff;
+            font-size: 1.05em;
+            font-weight: bold;
+            text-align: left;
+            position: absolute;
+            left: 10px;
+            z-index: 2;
+            background: transparent;
+            pointer-events: none;
         }
         .progress-size {
             position: absolute;
@@ -257,24 +281,8 @@
             font-size: 0.95em;
             font-weight: normal;
             pointer-events: none;
-        }
-        .progress-bar-inner {
-            height: 100%;
-            background: linear-gradient(90deg, #4db8ff 0%, #3498db 100%);
-            border-radius: 9px;
-            width: 0%;
-            transition: width 0.2s;
-        }
-        .progress-text {
-            color: #fff;
-            font-size: 1.1em;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 2px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            z-index: 2;
+            background: transparent;
         }
         .error-message {
             position: fixed;
@@ -489,9 +497,9 @@
         <div class="loading-container" id="loading-container" style="display:none;">
             <div class="progress-bar">
                 <div class="progress-bar-inner" id="progress-bar-inner"></div>
-                <div class="progress-size" id="progress-size"></div>
+                <span class="progress-text" id="progress-text">Loading... 0 MB</span>
+                <span class="progress-size" id="progress-size"></span>
             </div>
-            <div class="progress-text" id="progress-text">Loading... 0%</div>
         </div>
         <img class="modal-content" id="img01">
     </div>
@@ -860,14 +868,17 @@ if (canvas) {
             const xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
             xhr.responseType = "blob";
+            let loadedMB = 0;
             xhr.onprogress = function(e) {
                 let percent = 0;
                 if (e.lengthComputable) {
                     percent = Math.round((e.loaded / e.total) * 100);
+                    loadedMB = e.loaded / 1024 / 1024;
                 } else if (expectedSize) {
                     percent = Math.round((e.loaded / expectedSize) * 100);
+                    loadedMB = e.loaded / 1024 / 1024;
                 }
-                onProgress(percent);
+                onProgress(loadedMB, e.loaded, e.total);
             };
             xhr.onload = function() {
                 if (xhr.status === 200) {
@@ -941,13 +952,13 @@ if (canvas) {
                     modalImg.style.display = "none";
                     modal.classList.add("show");
                     progressBar.style.width = "0%";
-                    progressText.textContent = "Loading... 0%";
+                    progressText.textContent = "Loading... 0 MB";
                     // 设置文件大小（MB，保留两位小数）
                     const mb = file.size ? (file.size / 1024 / 1024).toFixed(2) : "?";
                     progressSize.textContent = mb + " MB";
-                    loadImageWithProgress(fullsizeUrl, file.size, percent => {
-                        progressBar.style.width = percent + "%";
-                        progressText.textContent = `Loading... ${percent}%`;
+                    loadImageWithProgress(fullsizeUrl, file.size, (loadedMB, loaded, total) => {
+                        progressBar.style.width = total ? ((loaded / total) * 100).toFixed(1) + "%" : "0%";
+                        progressText.textContent = "Loading... " + loadedMB.toFixed(2) + " MB";
                     }, blob => {
                         const url = URL.createObjectURL(blob);
                         modalImg.src = url;

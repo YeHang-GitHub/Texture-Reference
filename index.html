@@ -956,8 +956,12 @@ if (canvas) {
                     const progressBar = document.getElementById("progress-bar-inner");
                     const progressText = document.getElementById("progress-text");
                     const progressSize = document.getElementById("progress-size");
-                    loadingContainer.style.display = "flex";
+                    
+                    // 新增：清空之前的图片，避免显示上一次的图片
+                    modalImg.src = "";
                     modalImg.style.display = "none";
+                    
+                    loadingContainer.style.display = "flex";
                     modal.classList.add("show");
                     progressBar.style.width = "0%";
                     progressText.textContent = "Loading... 0 MB";

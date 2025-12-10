@@ -194,6 +194,36 @@
         .thumbnail:hover {
             transform: scale(1.02);
         }
+        /* NEW 标记样式（文件夹） */
+        .new-badge {
+            color: #ff6b6b;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin-left: 8px;
+            background: rgba(255, 107, 107, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            vertical-align: middle;
+        }
+        /* NEW 角标样式（图片） */
+        .image-wrapper {
+            position: absolute;
+            display: inline-block;
+        }
+        .new-corner {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.65em;
+            font-weight: bold;
+            padding: 3px 7px;
+            border-radius: 3px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -621,6 +651,22 @@
         img.crossOrigin = "anonymous";
         let canvas, context;
 
+        // 检查文件是否在30天内更新
+        function isNewFile(modifiedTime) {
+            if (!modifiedTime) return false;
+            const now = Date.now() / 1000; // 当前时间（秒）
+            const thirtyDaysInSeconds = 30 * 24 * 60 * 60;
+            return (now - modifiedTime) <= thirtyDaysInSeconds;
+        }
+
+        // 检查文件夹是否包含30天内的新文件
+        function folderHasNewFiles(folderPath, data) {
+            return data.some(file => 
+                file.fullsize_path.startsWith(folderPath + '/') && 
+                isNewFile(file.modified_time)
+            );
+        }
+
         async function fetchJsonData(url) {
             const timeout = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error("Timeout: Directory loading took too long.")), 15000); // 15 seconds timeout
@@ -681,13 +727,29 @@
                     const folderName = document.createElement("span");
                     folderName.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key;
 
+                    // 检查文件夹是否有新文件
+                    const hasNewFiles = !tree[key].name && folderHasNewFiles(`${currentPath}/${key}`, data);
+
+                    const rightSide = document.createElement("span");
+                    rightSide.style.display = "flex";
+                    rightSide.style.alignItems = "center";
+                    rightSide.style.gap = "5px";
+
+                    if (hasNewFiles) {
+                        const newBadge = document.createElement("span");
+                        newBadge.classList.add("new-badge");
+                        newBadge.textContent = "NEW";
+                        rightSide.appendChild(newBadge);
+                    }
+
                     const countSpan = document.createElement("span");
                     countSpan.style.color = "#aaa";
                     countSpan.style.fontWeight = "normal"; // 让数字不加粗
                     countSpan.textContent = tree[key].name ? "" : photoCount;
+                    rightSide.appendChild(countSpan);
 
                     item.appendChild(folderName);
-                    item.appendChild(countSpan);
+                    item.appendChild(rightSide);
 
                     if (!tree[key].name) {
                         if (isDeepestFolder) {
@@ -772,16 +834,16 @@
         function positionThumbnails() {
             const waterfall = document.getElementById("waterfall");
             const gap = 10; // 图片间隔
-            const thumbnails = Array.from(waterfall.getElementsByClassName("thumbnail"));
-            if (thumbnails.length === 0) return;
-            // 统一宽度：以第一个图片的实际宽度为参照
-            const colWidth = thumbnails[0].clientWidth;
+            const wrappers = Array.from(waterfall.getElementsByClassName("image-wrapper"));
+            if (wrappers.length === 0) return;
+            // 统一宽度：以第一个包装器的实际宽度为参照
+            const colWidth = wrappers[0].clientWidth;
             const containerWidth = waterfall.clientWidth;
             let colCount = Math.floor((containerWidth + gap) / (colWidth + gap));
             colCount = Math.max(colCount, 1);
             const colHeights = new Array(colCount).fill(0);
 
-            thumbnails.forEach(img => {
+            wrappers.forEach(wrapper => {
                 // 找出当前高度最小的那一列
                 let minCol = 0;
                 let minHeight = colHeights[0];
@@ -791,9 +853,9 @@
                         minCol = i;
                     }
                 }
-                img.style.top = minHeight + "px";
-                img.style.left = (minCol * (colWidth + gap)) + "px";
-                colHeights[minCol] += img.clientHeight + gap;
+                wrapper.style.top = minHeight + "px";
+                wrapper.style.left = (minCol * (colWidth + gap)) + "px";
+                colHeights[minCol] += wrapper.clientHeight + gap;
             });
             // 更新 waterfall 高度以适应瀑布流布局
             waterfall.style.height = Math.max(...colHeights) + "px";
@@ -816,9 +878,13 @@
             const containerWidth = waterfall.clientWidth;
             // 计算每张图片宽度，取整避免小数误差
             const newWidth = Math.floor((containerWidth - gap * (numImagesPerRow - 1)) / numImagesPerRow);
-            document.querySelectorAll(".thumbnail").forEach(img => {
-                img.style.width = newWidth + "px";
-                img.style.height = "auto";
+            document.querySelectorAll(".image-wrapper").forEach(wrapper => {
+                wrapper.style.width = newWidth + "px";
+                const img = wrapper.querySelector(".thumbnail");
+                if (img) {
+                    img.style.width = newWidth + "px";
+                    img.style.height = "auto";
+                }
             });
             positionThumbnails();
             // 更新 canvas 尺寸
@@ -926,11 +992,17 @@ if (canvas) {
                     ? `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`
                     : `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.thumbnail_path}`;
 
+                // 创建图片包装器（用于 NEW 角标）
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("image-wrapper");
+                wrapper.style.width = targetWidth + "px";
+
                 const imgEl = document.createElement("img");
                 imgEl.crossOrigin = "anonymous";
                 imgEl.classList.add("thumbnail");
                 imgEl.style.width = targetWidth + "px";
                 imgEl.style.height = "auto";
+                imgEl.style.position = "relative"; // 改为相对定位，让它在包装器内
                 imgEl.src = thumbUrl;
                 imgEl.onerror = (e) => {
                     console.error("Error loading thumbnail for", file.thumbnail_path, "URL:", imgEl.src, e);
@@ -939,12 +1011,22 @@ if (canvas) {
                     positionThumbnails();
                 };
 
+                // 如果是新图片，添加 NEW 角标
+                if (isNewFile(file.modified_time)) {
+                    const newCorner = document.createElement("span");
+                    newCorner.classList.add("new-corner");
+                    newCorner.textContent = "NEW";
+                    wrapper.appendChild(newCorner);
+                }
+
                 const aEl = document.createElement("a");
                 aEl.setAttribute("data-fancybox", "gallery");
                 aEl.setAttribute("data-type", "image");
                 aEl.setAttribute("data-src", fullsizeUrl);
                 aEl.setAttribute("data-original", fullsizeUrl);
-                aEl.appendChild(imgEl);
+                
+                wrapper.appendChild(imgEl);
+                aEl.appendChild(wrapper);
                 waterfall.appendChild(aEl);
 
                 // 新增：点击时显示进度条并加载图片

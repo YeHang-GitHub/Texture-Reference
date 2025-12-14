@@ -225,6 +225,10 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
+        .folder > * {
+            position: relative;
+            z-index: 1;
+        }
         .folder::before {
             content: '';
             position: absolute;
@@ -242,12 +246,99 @@
         }
         .folder:hover {
             transform: translateX(3px);
-            background: rgba(255, 165, 0, 0.1);
+            background: linear-gradient(
+                90deg,
+                rgba(255, 200, 50, 0.15) 0%,
+                rgba(255, 180, 30, 0.08) 100%
+            );
         }
         .folder.selected {
-            background: rgba(255, 165, 0, 0.15);
-            box-shadow: 0 0 20px rgba(255, 165, 0, 0.2);
+            position: relative;
         }
+        /* 玻璃覆盖层 - 主要的液态玻璃效果 */
+        .folder.selected::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            background: linear-gradient(
+                180deg,
+                rgba(255, 200, 50, 0.35) 0%,
+                rgba(255, 180, 30, 0.28) 100%
+            );
+            border: 1px solid rgba(255, 220, 100, 0.5);
+            box-shadow: 
+                /* 外层黄色光晕 - 减弱 */
+                0 0 20px rgba(255, 200, 50, 0.25),
+                0 4px 15px rgba(255, 180, 30, 0.2),
+                /* 外层深色阴影 */
+                0 8px 32px rgba(0, 0, 0, 0.35),
+                0 2px 8px rgba(0, 0, 0, 0.2),
+                /* 顶部边缘高光 - 减弱 */
+                inset 0 1px 0 rgba(255, 255, 200, 0.4),
+                /* 底部边缘亮光 - 减弱 */
+                inset 0 -1px 0 rgba(255, 240, 150, 0.35);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* 底部高光层 */
+        .folder.selected::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 35%;
+            background: linear-gradient(
+                0deg,
+                rgba(255, 240, 150, 0.3) 0%,
+                rgba(255, 220, 100, 0.1) 60%,
+                rgba(255, 200, 50, 0) 100%
+            );
+            border-radius: 0 0 20px 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* 从上往下滑入 */
+        .folder.selected.slide-from-top::before,
+        .folder.selected.slide-from-top::after {
+            animation: slideGlassFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        /* 从下往上滑入 */
+        .folder.selected.slide-from-bottom::before,
+        .folder.selected.slide-from-bottom::after {
+            animation: slideGlassFromBottom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes slideGlassFromTop {
+            0% {
+                transform: scaleY(0);
+                transform-origin: top center;
+                opacity: 0;
+            }
+            100% {
+                transform: scaleY(1);
+                transform-origin: top center;
+                opacity: 1;
+            }
+        }
+        @keyframes slideGlassFromBottom {
+            0% {
+                transform: scaleY(0);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+            100% {
+                transform: scaleY(1);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+        }
+
         .file {
             margin-left: 20px;
             cursor: pointer;
@@ -765,6 +856,7 @@
         let img = new Image();
         img.crossOrigin = "anonymous";
         let canvas, context;
+        let lastSelectedFolder = null; // 跟踪上一个选中的文件夹
 
         // 检查文件是否为最后一批上传的新文件
         function isNewFile(file) {
@@ -875,8 +967,21 @@
                         if (isDeepestFolder) {
                             item.onclick = (event) => {
                                 event.stopPropagation();
-                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                                item.classList.add('selected');
+                                
+                                // 确定动画方向
+                                let animationClass = 'slide-from-bottom';
+                                if (lastSelectedFolder) {
+                                    const lastRect = lastSelectedFolder.getBoundingClientRect();
+                                    const currentRect = item.getBoundingClientRect();
+                                    animationClass = currentRect.top < lastRect.top ? 'slide-from-bottom' : 'slide-from-top';
+                                }
+                                
+                                document.querySelectorAll('.folder').forEach(folder => {
+                                    folder.classList.remove('selected', 'slide-from-top', 'slide-from-bottom');
+                                });
+                                item.classList.add('selected', animationClass);
+                                lastSelectedFolder = item;
+                                
                                 const newPath = `${currentPath}/${key}`;
                                 displayImagesInFolder(newPath, data);
                                 document.getElementById("canvas-container").style.display = "none";
@@ -888,8 +993,21 @@
 
                             item.onclick = (event) => {
                                 event.stopPropagation();
-                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                                item.classList.add('selected');
+                                
+                                // 确定动画方向
+                                let animationClass = 'slide-from-bottom';
+                                if (lastSelectedFolder) {
+                                    const lastRect = lastSelectedFolder.getBoundingClientRect();
+                                    const currentRect = item.getBoundingClientRect();
+                                    animationClass = currentRect.top < lastRect.top ? 'slide-from-bottom' : 'slide-from-top';
+                                }
+                                
+                                document.querySelectorAll('.folder').forEach(folder => {
+                                    folder.classList.remove('selected', 'slide-from-top', 'slide-from-bottom');
+                                });
+                                item.classList.add('selected', animationClass);
+                                lastSelectedFolder = item;
+                                
                                 if (window.getComputedStyle(subContainer).display === 'none') {
                                     subContainer.style.display = 'block';
                                     const height = subContainer.scrollHeight;

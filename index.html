@@ -159,12 +159,12 @@
         }
         /* 左侧文件树：固定宽度，并独立垂直滚动 - 液态玻璃效果 */
         #file-tree {
-            width: 200px;
+            width: 210px;
             padding: 10px;
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 2px solid rgb(255, 255, 255);
             overflow-y: auto;
             flex-shrink: 0;
         }
@@ -254,6 +254,8 @@
         }
         .folder.selected {
             position: relative;
+            margin-right: -15px; /* 允许右侧溢出，包含hover的3px位移 */
+            padding-right: 15px; /* 补偿负边距 */
         }
         /* 玻璃覆盖层 - 主要的液态玻璃效果 */
         .folder.selected::before {
@@ -538,7 +540,9 @@
             border-left: 1px solid rgba(255, 255, 255, 0.1);
             margin-left: 0;
             padding-left: 2px;
-            overflow: hidden;
+            padding-right: 15px; /* 为右侧光晕和hover位移留出空间 */
+            overflow-y: hidden;
+            overflow-x: visible; /* 允许水平溢出 */
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .hidden {

@@ -136,6 +136,7 @@
         /* #content 占据顶部栏下剩余区域，并隐藏自身滚动 */
         #content {
             display: flex;
+            flex-direction: row;
             height: calc(100vh - 50px);
             overflow: hidden;
         }
@@ -147,23 +148,93 @@
             overflow-y: auto;
             flex-shrink: 0;
         }
+        /* 右侧内容区域 */
+        #right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        /* 面包屑导航 */
+        #breadcrumb {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1em;
+            color: #aaa;
+        }
+        #breadcrumb .breadcrumb-item {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        #breadcrumb .breadcrumb-item:hover {
+            color: #4db8ff;
+        }
+        #breadcrumb .breadcrumb-separator {
+            margin: 0 10px;
+            color: #666;
+        }
+        /* 显示所有照片开关 */
+        #show-all-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        #show-all-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        #show-all-toggle input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        /* 分割线 */
+        .section-divider {
+            border: none;
+            border-top: 2px solid #444;
+            margin: 20px 0;
+        }
+        /* 文件树样式 */
+        .folder {
+            cursor: pointer;
+            margin: 5px 0;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .folder:hover {
+            background-color: #444;
+        }
+        .folder.selected {
+            background-color: #555;
+        }
+        .sub-container {
+            overflow: hidden;
+            transition: height 0.3s ease;
+        }
+        /* 主视图区域 */
+        #main-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 30px 40px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
         /* 右侧画廊：自适应宽度，并独立垂直滚动 */
         #gallery {
-            flex-grow: 1;
             padding: 10px;
             position: relative; /* 用于 JS 绝对定位图片 */
-            overflow-y: auto;
-            height: 100%;
+            width: 100%;
         }
-        /* canvas-container（动画区域）如果需要放在画廊上层，不影响滚动，建议保持绝对定位 */
-        #canvas-container {
-            position: absolute;
-            top: 50px; /* 位于顶部栏下 */
-            left: 222px; /* 左侧：200px 文件树 + 22px gap（可根据需要调整） */
-            width: calc(100% - 222px);
-            height: calc(100% - 50px);
-            z-index: 1; /* Lower z-index to ensure tooltips are above */
-            pointer-events: none; /* 避免遮挡右侧画廊的滚动或点击 */
+        #waterfall {
+            position: relative;
+            width: 100%;
         }
         .folder {
             cursor: pointer;
@@ -483,6 +554,181 @@
         #support-button:hover #support-tooltip {
             display: block;
         }
+
+        /* 文件夹卡片样式 - 文件夹收纳风格 */
+        .folder-card {
+            position: relative;
+            cursor: pointer;
+            transition: z-index 0s 0s;
+        }
+        .folder-card:hover {
+            z-index: 100;
+            transition: z-index 0s 0s;
+        }
+        .folder-card-inner {
+            position: relative;
+            width: 100%;
+        }
+        .folder-card-image-stack {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%; /* 1:1 aspect ratio */
+            overflow: visible;
+        }
+        
+        /* 文件夹背景容器 */
+        .folder-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 33.33%;
+            background: linear-gradient(180deg, #E8E8E8 0%, #C8C8C8 100%);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            overflow: visible;
+            pointer-events: none;
+        }
+        
+        /* 文件夹左右边框 */
+        .folder-container::before,
+        .folder-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent);
+        }
+        
+        .folder-container::before {
+            left: 0;
+            border-radius: 0 0 0 8px;
+        }
+        
+        .folder-container::after {
+            right: 0;
+            background: linear-gradient(-90deg, rgba(0, 0, 0, 0.2), transparent);
+            border-radius: 0 0 8px 0;
+        }
+        
+        /* 文件夹顶部标签 */
+        .folder-tab {
+            position: absolute;
+            top: -12px;
+            left: 15%;
+            width: 35%;
+            height: 14px;
+            background: linear-gradient(180deg, #E8E8E8 0%, #D8D8D8 100%);
+            border-radius: 4px 4px 0 0;
+            box-shadow: 
+                0 -2px 4px rgba(0, 0, 0, 0.2),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 文件夹顶部边缘 */
+        .folder-top-edge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), transparent);
+            border-radius: 2px 2px 0 0;
+        }
+        
+        /* 图片容器 */
+        .folder-card-image {
+            position: absolute;
+            width: 88%;
+            height: 88%;
+            left: 6%;
+            border-radius: 4px;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* 三张图片的初始位置 - 最后面的图片在最底下 */
+        .folder-card-image.back-1 {
+            bottom: 2%;
+            z-index: 2;
+        }
+        .folder-card-image.back-2 {
+            bottom: 4%;
+            z-index: 3;
+        }
+        .folder-card-image.front {
+            bottom: 6%;
+            z-index: 4;
+        }
+        
+        /* Hover效果 - 最后面的图片拉出最多，可以覆盖上面的文件夹 */
+        .folder-card:hover .folder-card-image.back-1 {
+            bottom: 80%;
+        }
+        .folder-card:hover .folder-card-image.back-2 {
+            bottom: 55%;
+        }
+        .folder-card:hover .folder-card-image.front {
+            bottom: 30%;
+        }
+        /* 文件夹信息标签 */
+        .folder-info-label {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+        
+        .folder-name {
+            color: white;
+        }
+        
+        .folder-count {
+            color: #90CAF9;
+            font-size: 0.9em;
+        }
+        
+        .folder-info-label .new-badge {
+            background: #ff3b30;
+            color: white;
+            font-size: 0.75em;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .folder-card-info {
+            margin-top: 10px;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.75em;
+        }
+        .folder-card-count {
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .folder-card .new-badge {
+            display: inline-block;
+            margin-left: 3px;
+            font-size: 0.6em;
+            padding: 2px 5px;
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
@@ -525,9 +771,16 @@
     </div>
     <div id="content">
         <div id="file-tree"></div>
-        <div id="gallery"></div>
-        <div id="canvas-container">
-            <canvas id="canvas"></canvas> <!-- Add canvas for animation -->
+        <div id="right-content">
+            <div id="breadcrumb"></div>
+            <div id="show-all-toggle">
+                <label>
+                    <input type="checkbox" id="show-all-photos">
+                    <span>显示所有子文件夹的照片</span>
+                </label>
+            </div>
+            <div id="main-view"></div>
+            <div id="gallery"></div>
         </div>
     </div>
     <div id="error-message" class="error-message"></div>
@@ -646,10 +899,11 @@
         }
 
         const jsonUrl = 'https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/directory_cache.json';
-        let totalSeconds = 0;
-        let img = new Image();
-        img.crossOrigin = "anonymous";
-        let canvas, context;
+        let currentPath = 'Images';
+        let currentData = [];
+        let allFoldersData = [];
+        let pathHistory = ['Images'];
+        let showAllPhotos = false;
 
         // 检查文件是否为最后一批上传的新文件
         function isNewFile(file) {
@@ -703,11 +957,12 @@
             }
         }
 
+        // 创建文件树
         async function createFileTree(container, data, level = 0, parentPath = 'Images') {
             const folders = {};
 
             data.forEach(file => {
-                const parts = file.fullsize_path.split('/').slice(1); // Remove 'Images' from the path
+                const parts = file.fullsize_path.split('/').slice(1);
                 let currentLevel = folders;
 
                 parts.forEach((part, index) => {
@@ -721,19 +976,24 @@
             function buildTree(container, tree, level, currentPath) {
                 const sortedKeys = Object.keys(tree).sort((a, b) => a.localeCompare(b));
                 sortedKeys.forEach(key => {
+                    if (tree[key].name) return; // 跳过文件
+                    
                     const item = document.createElement("div");
                     item.style.marginLeft = `${level * 15}px`;
-                    item.classList.add(tree[key].name ? "file" : "folder");
+                    item.classList.add("folder");
                     item.style.display = "flex";
                     item.style.justifyContent = "space-between";
 
-                    const isDeepestFolder = !Object.keys(tree[key]).some(subKey => typeof tree[key][subKey] === 'object' && !tree[key][subKey].name);
-                    const photoCount = tree[key].name ? 0 : countPhotosInFolder(`${currentPath}/${key}`, data);
+                    const isDeepestFolder = !Object.keys(tree[key]).some(subKey => 
+                        typeof tree[key][subKey] === 'object' && !tree[key][subKey].name
+                    );
+                    
+                    const folderPath = `${currentPath}/${key}`;
+                    const photoCount = countPhotosInFolder(folderPath, data);
                     const folderName = document.createElement("span");
-                    folderName.textContent = tree[key].name ? "" : (isDeepestFolder ? "🏞️ " : "📂 ") + key;
+                    folderName.textContent = (isDeepestFolder ? "🏞️ " : "📂 ") + key;
 
-                    // 检查文件夹是否有新文件
-                    const newFilesCount = !tree[key].name ? countNewFilesInFolder(`${currentPath}/${key}`, data) : 0;
+                    const newFilesCount = countNewFilesInFolder(folderPath, data);
 
                     const rightSide = document.createElement("span");
                     rightSide.style.display = "flex";
@@ -742,8 +1002,8 @@
 
                     const countSpan = document.createElement("span");
                     countSpan.style.color = "#aaa";
-                    countSpan.style.fontWeight = "normal"; // 让数字不加粗
-                    countSpan.textContent = tree[key].name ? "" : photoCount;
+                    countSpan.style.fontWeight = "normal";
+                    countSpan.textContent = photoCount;
                     rightSide.appendChild(countSpan);
 
                     if (newFilesCount > 0) {
@@ -756,68 +1016,48 @@
                     item.appendChild(folderName);
                     item.appendChild(rightSide);
 
-                    if (!tree[key].name) {
-                        if (isDeepestFolder) {
-                            item.onclick = (event) => {
-                                event.stopPropagation();
-                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                                item.classList.add('selected');
-                                const newPath = `${currentPath}/${key}`;
-                                displayImagesInFolder(newPath, data);
-                                document.getElementById("canvas-container").style.display = "none";
-                            };
-                            container.appendChild(item);
-                        } else {
-                            const subContainer = document.createElement("div");
-                            subContainer.classList.add("hidden", "sub-container");
-
-                            item.onclick = (event) => {
-                                event.stopPropagation();
-                                document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
-                                item.classList.add('selected');
-                                if (window.getComputedStyle(subContainer).display === 'none') {
-                                    subContainer.style.display = 'block';
-                                    const height = subContainer.scrollHeight;
-                                    subContainer.style.height = '0px';
-                                    setTimeout(() => {
-                                        subContainer.style.transition = 'height 0.3s ease';
-                                        subContainer.style.height = height + 'px';
-                                    }, 10);
-                                    subContainer.addEventListener('transitionend', function clearHeight(e) {
-                                        if (e.propertyName === 'height') {
-                                            subContainer.style.height = 'auto';
-                                            subContainer.style.transition = '';
-                                            subContainer.removeEventListener('transitionend', clearHeight);
-                                        }
-                                    });
-                                } else {
-                                    const height = subContainer.scrollHeight;
-                                    subContainer.style.height = height + 'px';
-                                    setTimeout(() => {
-                                        subContainer.style.transition = 'height 0.3s ease';
-                                        subContainer.style.height = '0px';
-                                    }, 10);
-                                    subContainer.addEventListener('transitionend', function hide(e) {
-                                        if (e.propertyName === 'height') {
-                                            subContainer.style.display = 'none';
-                                            subContainer.style.transition = '';
-                                            subContainer.removeEventListener('transitionend', hide);
-                                        }
-                                    });
-                                }
-                                const newPath = `${currentPath}/${key}`;
-                                displayImagesInFolder(newPath, data);
-                                document.getElementById("canvas-container").style.display = "none";
-                            };
-                            container.appendChild(item);
-                            container.appendChild(subContainer);
-                            buildTree(subContainer, tree[key], level + 1, `${currentPath}/${key}`);
-                        }
-                    } else {
-                        item.onclick = () => {
-                            displayImagesInFolder(tree[key].fullsize_path, data);
+                    if (isDeepestFolder) {
+                        item.onclick = (event) => {
+                            event.stopPropagation();
+                            document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                            item.classList.add('selected');
+                            navigateToPath(folderPath);
                         };
                         container.appendChild(item);
+                    } else {
+                        const subContainer = document.createElement("div");
+                        subContainer.classList.add("hidden", "sub-container");
+
+                        item.onclick = (event) => {
+                            event.stopPropagation();
+                            document.querySelectorAll('.folder').forEach(folder => folder.classList.remove('selected'));
+                            item.classList.add('selected');
+                            
+                            if (window.getComputedStyle(subContainer).display === 'none') {
+                                subContainer.style.display = 'block';
+                                const height = subContainer.scrollHeight;
+                                subContainer.style.height = '0px';
+                                setTimeout(() => {
+                                    subContainer.style.height = height + 'px';
+                                }, 10);
+                                setTimeout(() => {
+                                    subContainer.style.height = 'auto';
+                                }, 310);
+                            } else {
+                                const height = subContainer.scrollHeight;
+                                subContainer.style.height = height + 'px';
+                                setTimeout(() => {
+                                    subContainer.style.height = '0px';
+                                }, 10);
+                                setTimeout(() => {
+                                    subContainer.style.display = 'none';
+                                }, 310);
+                            }
+                            navigateToPath(folderPath);
+                        };
+                        container.appendChild(item);
+                        container.appendChild(subContainer);
+                        buildTree(subContainer, tree[key], level + 1, folderPath);
                     }
                 });
             }
@@ -825,8 +1065,102 @@
             buildTree(container, folders, level, parentPath);
         }
 
+        // 获取指定路径下的直接子文件夹和深层文件夹
+        function getFoldersAtPath(path, data) {
+            const folders = {};
+            const foldersList = [];
+            
+            data.forEach(file => {
+                const parts = file.fullsize_path.split('/').slice(1);
+                let currentLevel = folders;
+
+                parts.forEach((part, index) => {
+                    if (!currentLevel[part]) {
+                        currentLevel[part] = index === parts.length - 1 ? file : {};
+                    }
+                    currentLevel = currentLevel[part];
+                });
+            });
+
+            function navigateToPath(tree, targetPath) {
+                if (targetPath === 'Images') return tree;
+                const pathParts = targetPath.split('/').slice(1);
+                let current = tree;
+                for (const part of pathParts) {
+                    if (current[part]) {
+                        current = current[part];
+                    } else {
+                        return {};
+                    }
+                }
+                return current;
+            }
+
+            const targetTree = navigateToPath(folders, path);
+            
+            Object.keys(targetTree).forEach(key => {
+                if (!targetTree[key].name) {
+                    const folderPath = `${path}/${key}`;
+                    const hasSubfolders = Object.keys(targetTree[key]).some(subKey => 
+                        typeof targetTree[key][subKey] === 'object' && !targetTree[key][subKey].name
+                    );
+                    
+                    let photoCount, images;
+                    if (hasSubfolders) {
+                        // 如果有子文件夹，统计所有子文件夹的图片
+                        photoCount = countPhotosInFolder(folderPath, data);
+                        images = data.filter(file => 
+                            file.fullsize_path.startsWith(folderPath + '/')
+                        ).slice(0, 3);
+                    } else {
+                        // 如果是最深层文件夹
+                        photoCount = countPhotosInFolder(folderPath, data);
+                        images = data.filter(file => 
+                            file.fullsize_path.startsWith(folderPath + '/')
+                        ).slice(0, 3);
+                    }
+                    
+                    const newFilesCount = countNewFilesInFolder(folderPath, data);
+                    
+                    foldersList.push({
+                        name: key,
+                        path: folderPath,
+                        photoCount: photoCount,
+                        newFilesCount: newFilesCount,
+                        images: images,
+                        hasSubfolders: hasSubfolders
+                    });
+                }
+            });
+
+            return foldersList.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // 获取指定路径下的所有图片（仅限最深层文件夹）
+        function getImagesAtPath(path, data) {
+            return data.filter(file => {
+                const filePath = file.fullsize_path;
+                const fileDir = filePath.substring(0, filePath.lastIndexOf('/'));
+                return fileDir === path;
+            });
+        }
+
+        // 获取指定路径下所有子文件夹的图片（递归）
+        function getAllImagesUnderPath(path, data) {
+            return data.filter(file => {
+                return file.fullsize_path.startsWith(path + '/');
+            }).sort((a, b) => a.name.localeCompare(b.name));
+        }
+
         function countPhotosInFolder(folderPath, data) {
             return data.filter(file => file.fullsize_path.startsWith(folderPath + '/')).length;
+        }
+
+        function countNewFilesInFolder(folderPath, data) {
+            return data.filter(file => 
+                file.fullsize_path.startsWith(folderPath + '/') && 
+                file.is_new === true
+            ).length;
         }
 
         function collectImagesFromFolder(folderPath, data) {
@@ -892,18 +1226,7 @@
                 }
             });
             positionThumbnails();
-            // 更新 canvas 尺寸
-            const gallery = document.getElementById("gallery");
-if (canvas) {
-                canvas.width = gallery.clientWidth;
-                canvas.height = gallery.clientHeight;
-            }
         }
-
-        // slider 的 oninput 保持不变
-        slider.oninput = () => {
-            updateGalleryLayout();
-        };
 
         // 监听窗口resize
         window.addEventListener("resize", () => {
@@ -911,11 +1234,6 @@ if (canvas) {
             window._resizeTimeout = setTimeout(() => {
                 updateGalleryLayout();
             }, 150);
-        });
-
-        // 使用 window.onload 确保页面全部加载后更新布局
-        window.addEventListener("load", () => {
-            updateGalleryLayout();
         });
 
         // 新增：通过 XMLHttpRequest 加载图片，并逐步回调进度
@@ -972,16 +1290,30 @@ if (canvas) {
             xhr.send();
         }
 
+        // 供文件树使用：显示指定文件夹的图片
         async function displayImagesInFolder(folderPath, data) {
+            currentPath = folderPath;
+            updateBreadcrumb();
+            renderCurrentView();
+        }
+
+        // 在gallery中显示图片列表
+        async function displayImagesInGallery(files) {
             const gallery = document.getElementById("gallery");
+            
             gallery.innerHTML = "";
+            
             const waterfall = document.createElement("div");
             waterfall.id = "waterfall";
             gallery.appendChild(waterfall);
-            updateGalleryLayout();
-            const files = collectImagesFromFolder(folderPath, data);
+            
             console.log("Debug: files to display", files);
-            document.getElementById("slider-container").style.display = "flex";
+            
+            // 延迟调用updateGalleryLayout确保waterfall已经添加到DOM
+            setTimeout(() => {
+                updateGalleryLayout();
+            }, 0);
+            
             const gap = 10;
             const slider = document.getElementById("slider");
             const numImagesPerRow = parseInt(slider.max, 10) - parseInt(slider.value, 10) + parseInt(slider.min, 10);
@@ -1072,31 +1404,193 @@ if (canvas) {
             });
         }
 
-        function draw(delta) {
-            totalSeconds += delta;
-            const zoomFactor = 0.4; // Zoom out a little bit
-            const x = -1 * (img.width * zoomFactor - canvas.width) / 2 * (1 + Math.cos(totalSeconds / (4 * Math.PI))); // Slow down by half
-            const y = -1 * (img.height * zoomFactor - canvas.height) / 2 * (1 + -Math.sin(totalSeconds / (4 * Math.PI))); // Slow down by half
-
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, x, y, img.width * zoomFactor, img.height * zoomFactor); // Apply zoom factor
+        // 更新面包屑导航
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById("breadcrumb");
+            breadcrumb.innerHTML = "";
+            
+            const parts = currentPath.split('/');
+            parts.forEach((part, index) => {
+                const item = document.createElement("span");
+                item.classList.add("breadcrumb-item");
+                item.textContent = part;
+                item.onclick = () => {
+                    const newPath = parts.slice(0, index + 1).join('/');
+                    navigateToPath(newPath);
+                };
+                breadcrumb.appendChild(item);
+                
+                if (index < parts.length - 1) {
+                    const separator = document.createElement("span");
+                    separator.classList.add("breadcrumb-separator");
+                    separator.textContent = ">";
+                    breadcrumb.appendChild(separator);
+                }
+            });
         }
 
-        function animate() {
-            let lastTime = 0;
-            function frame(time) {
-                const delta = (time - lastTime) / 1000;
-                lastTime = time;
-                draw(delta);
-                requestAnimationFrame(frame);
+        // 导航到指定路径
+        function navigateToPath(path) {
+            currentPath = path;
+            updateBreadcrumb();
+            renderCurrentView();
+        }
+
+        // 渲染当前视图
+        function renderCurrentView() {
+            const mainView = document.getElementById("main-view");
+            const gallery = document.getElementById("gallery");
+            
+            mainView.innerHTML = "";
+            gallery.innerHTML = "";
+            
+            const folders = getFoldersAtPath(currentPath, currentData);
+            let images;
+            
+            if (showAllPhotos) {
+                // 显示所有子文件夹的图片
+                images = getAllImagesUnderPath(currentPath, currentData);
+            } else {
+                // 仅显示当前路径的图片
+                images = getImagesAtPath(currentPath, currentData);
             }
-            requestAnimationFrame(frame);
+            
+            // 显示文件夹卡片
+            folders.forEach(folder => {
+                const card = createFolderCard(folder);
+                mainView.appendChild(card);
+            });
+            
+            // 如果有图片，显示分割线和图片
+            if (images.length > 0 && folders.length > 0) {
+                const divider = document.createElement("hr");
+                divider.classList.add("section-divider");
+                divider.style.gridColumn = "1 / -1";
+                mainView.appendChild(divider);
+            }
+            
+            // 显示图片
+            if (images.length > 0) {
+                displayImagesInGallery(images);
+            }
+        }
+
+        // 创建文件夹卡片
+        function createFolderCard(folder) {
+            const card = document.createElement("div");
+            card.classList.add("folder-card");
+
+            const cardInner = document.createElement("div");
+            cardInner.classList.add("folder-card-inner");
+
+            const imageStack = document.createElement("div");
+            imageStack.classList.add("folder-card-image-stack");
+
+            // 创建文件夹容器
+            const folderContainer = document.createElement("div");
+            folderContainer.classList.add("folder-container");
+            
+            // 创建文件夹标签
+            const folderTab = document.createElement("div");
+            folderTab.classList.add("folder-tab");
+            folderContainer.appendChild(folderTab);
+            
+            // 创建文件夹顶部边缘
+            const folderTopEdge = document.createElement("div");
+            folderTopEdge.classList.add("folder-top-edge");
+            folderContainer.appendChild(folderTopEdge);
+            
+            imageStack.appendChild(folderContainer);
+
+            // 添加最多3张图片
+            const imagesToShow = folder.images.slice(0, 3);
+            const imageClasses = ['front', 'back-2', 'back-1'];
+            
+            imagesToShow.forEach((file, index) => {
+                const img = document.createElement("img");
+                img.classList.add("folder-card-image", imageClasses[index]);
+                img.crossOrigin = "anonymous";
+                const useRaw = file.size > 20 * 1024 * 1024;
+                const thumbUrl = useRaw
+                    ? `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`
+                    : `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.thumbnail_path}`;
+                img.src = thumbUrl;
+                img.onerror = () => {
+                    console.error("Error loading card image:", file.thumbnail_path);
+                };
+                imageStack.appendChild(img);
+            });
+
+            // 添加信息标签
+            const infoLabel = document.createElement("div");
+            infoLabel.classList.add("folder-info-label");
+            
+            const folderName = document.createElement("span");
+            folderName.classList.add("folder-name");
+            folderName.textContent = folder.name;
+            infoLabel.appendChild(folderName);
+            
+            const folderCount = document.createElement("span");
+            folderCount.classList.add("folder-count");
+            folderCount.textContent = `🏞️ ${folder.photoCount}`;
+            infoLabel.appendChild(folderCount);
+            
+            // 如果有新文件，添加NEW标记
+            if (folder.newFilesCount > 0) {
+                const newBadge = document.createElement("span");
+                newBadge.classList.add("new-badge");
+                newBadge.textContent = `${folder.newFilesCount} NEW`;
+                infoLabel.appendChild(newBadge);
+            }
+            
+            imageStack.appendChild(infoLabel);
+
+            // 添加信息栏
+            const info = document.createElement("div");
+            info.classList.add("folder-card-info");
+
+            cardInner.appendChild(imageStack);
+            cardInner.appendChild(info);
+            card.appendChild(cardInner);
+
+            // 点击卡片进入该文件夹
+            card.onclick = () => {
+                navigateToPath(folder.path);
+            };
+
+            return card;
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const fileTree = document.getElementById("file-tree");
             const data = await fetchJsonData(jsonUrl);
+            currentData = data;
+
+            // 创建文件树
+            const fileTree = document.getElementById("file-tree");
             await createFileTree(fileTree, data);
+
+            // 配置slider并更新初始布局
+            const slider = document.getElementById("slider");
+            slider.min = 1;
+            slider.max = 10;
+            slider.step = 1;
+            slider.value = 6; // 默认每行5张（中图）
+            
+            // slider 的 oninput 事件
+            slider.oninput = () => {
+                updateGalleryLayout();
+            };
+
+            // 初始化视图
+            updateBreadcrumb();
+            renderCurrentView();
+
+            // 监听"显示所有照片"开关
+            const showAllCheckbox = document.getElementById("show-all-photos");
+            showAllCheckbox.addEventListener("change", (e) => {
+                showAllPhotos = e.target.checked;
+                renderCurrentView();
+            });
 
             const modal = document.getElementById("myModal");
             const modalImg = document.getElementById("img01");
@@ -1116,28 +1610,6 @@ if (canvas) {
                 const originY = (offsetY / rect.height) * 100;
                 modalImg.style.transformOrigin = `${originX}% ${originY}%`;
                 modalImg.classList.toggle("enlarged");
-            };
-
-            // 配置slider并更新初始布局
-            slider.min = 1;
-            slider.max = 10;
-            slider.step = 1;
-            slider.value = 6; // 默认每行5张（中图）
-            updateGalleryLayout();
-
-            // 选取随机图片用于canvas动画
-            const randomImage = data[Math.floor(Math.random() * data.length)];
-            img.src = `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${randomImage.fullsize_path}`;
-
-            // 设置canvas
-            canvas = document.getElementById("canvas");
-            context = canvas.getContext("2d");
-
-            img.onload = () => {
-                const gallery = document.getElementById("gallery");
-                canvas.width = gallery.clientWidth;
-                canvas.height = gallery.clientHeight;
-                animate();
             };
 
             document.getElementById("info-button").addEventListener("click", () => {

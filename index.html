@@ -222,9 +222,10 @@
         #main-view {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 30px 40px;
+            gap: 5px 40px;
             width: 100%;
             margin-bottom: 20px;
+            margin-top: -30px; /* 补偿第一行的上方空白 */
         }
         /* 右侧画廊：自适应宽度，并独立垂直滚动 */
         #gallery {
@@ -558,12 +559,13 @@
         /* 文件夹卡片样式 - 文件夹收纳风格 */
         .folder-card {
             position: relative;
-            cursor: pointer;
+            cursor: default; /* 默认鼠标样式 */
             transition: z-index 0s 0s;
+            margin-top: -10%; /* 负margin补偿上方空白区域，使文件夹紧凑排列 */
         }
-        .folder-card:hover {
+        .folder-card.hovering {
             z-index: 100;
-            transition: z-index 0s 0s;
+            cursor: pointer; /* hover状态下显示可点击 */
         }
         .folder-card-inner {
             position: relative;
@@ -574,127 +576,182 @@
             width: 100%;
             padding-bottom: 100%; /* 1:1 aspect ratio */
             overflow: visible;
+            perspective: 600px;
+            transform-style: preserve-3d;
+            pointer-events: auto; /* 需要响应鼠标事件来判断位置 */
         }
         
         /* 文件夹背景容器 */
         .folder-container {
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 33.33%;
-            background: linear-gradient(180deg, #E8E8E8 0%, #C8C8C8 100%);
-            border-radius: 0 0 8px 8px;
-            box-shadow: 
-                0 4px 12px rgba(0, 0, 0, 0.3),
-                inset 0 2px 4px rgba(0, 0, 0, 0.15);
-            z-index: 10;
-            overflow: visible;
+            height: 100%;
+            z-index: 1;
             pointer-events: none;
         }
         
-        /* 文件夹左右边框 */
-        .folder-container::before,
-        .folder-container::after {
+        /* 文件夹主体 */
+        .folder-body {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            background: rgb(4, 160, 190);
+            border-radius: 0 16px 16px 16px;
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.6),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+        }
+        
+        /* 移除内部阴影效果 */
+        .folder-inner-shadow {
+            display: none;
+        }
+        
+        /* 移除旧的边框样式 */
+        
+        /* 文件夹标签页 - 毛玻璃效果 */
+        .folder-tab {
+            position: absolute;
+            bottom: 70%; /* 与文件夹主体顶部对齐（主体高度70%） */
+            left: 0;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 12px;
+            height: 10%;
+            min-width: 30px;
+            max-width: 80%;
+            background: rgb(4, 160, 190);
+            border-radius: 16px 16px 0 0;
+            box-shadow: 
+                0 -2px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: none;
+            pointer-events: auto;
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-sizing: border-box;
+        }
+        
+        /* 标签页高光效果 */
+        .folder-tab::before {
             content: '';
             position: absolute;
             top: 0;
-            bottom: 0;
-            width: 6px;
-            background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent);
-        }
-        
-        .folder-container::before {
             left: 0;
-            border-radius: 0 0 0 8px;
-        }
-        
-        .folder-container::after {
             right: 0;
-            background: linear-gradient(-90deg, rgba(0, 0, 0, 0.2), transparent);
-            border-radius: 0 0 8px 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+            border-radius: 16px 16px 0 0;
         }
         
-        /* 文件夹顶部标签 */
-        .folder-tab {
-            position: absolute;
-            top: -12px;
-            left: 15%;
-            width: 35%;
-            height: 14px;
-            background: linear-gradient(180deg, #E8E8E8 0%, #D8D8D8 100%);
-            border-radius: 4px 4px 0 0;
-            box-shadow: 
-                0 -2px 4px rgba(0, 0, 0, 0.2),
-                inset 0 -1px 2px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* 文件夹顶部边缘 */
+        /* 移除旧的边缘样式 */
         .folder-top-edge {
+            display: none;
+        }
+        
+        /* 文件夹封面包装器 - 处理transform动画 */
+        .folder-cover-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 25%;
+            transform-origin: center bottom;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), z-index 0s;
+            z-index: 15;
+            pointer-events: auto;
+            transform-style: flat; /* 强制2D渲染，让z-index正常工作 */
+        }
+        
+        /* 文件夹封面 - 毛玻璃效果 */
+        .folder-cover {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 4px;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), transparent);
-            border-radius: 2px 2px 0 0;
+            height: 100%;
+            background: rgba(120, 220, 230, 0.45);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 0 0 16px 16px;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.2),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: none;
+            overflow: visible;
         }
         
-        /* 图片容器 */
-        .folder-card-image {
+        .folder-cover::before {
+            content: '';
             position: absolute;
-            width: 88%;
-            height: 88%;
-            left: 6%;
-            border-radius: 4px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+        }
+        
+        /* Hover时封面包装器的翻转角度由JS动态控制 */
+        .folder-card-image-stack:hover .folder-cover-wrapper {
+            /* 初始角度，会被JS覆盖 */
+            transform: rotateX(-90deg);
+        }
+        
+        /* 书本页面容器 - 在中上部区域 */
+        .book-pages {
+            position: absolute;
+            top: 37%;
+            left: 5%;
+            width: 90%;
+            height: 58%;
+            perspective: 1000px;
+            z-index: 5;
+            pointer-events: auto;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+        }
+        
+        /* 单个书页 - 唄片效果，铰链在底部 */
+        .book-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            transform-origin: center 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            overflow: hidden;
+            opacity: 1;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+        }
+        
+        .book-page.active {
+            opacity: 1;
+        }
+        
+        .book-page img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
-        /* 三张图片的初始位置 - 最后面的图片在最底下 */
-        .folder-card-image.back-1 {
-            bottom: 2%;
-            z-index: 2;
-        }
-        .folder-card-image.back-2 {
-            bottom: 4%;
-            z-index: 3;
-        }
-        .folder-card-image.front {
-            bottom: 6%;
-            z-index: 4;
-        }
-        
-        /* Hover效果 - 最后面的图片拉出最多，可以覆盖上面的文件夹 */
-        .folder-card:hover .folder-card-image.back-1 {
-            bottom: 80%;
-        }
-        .folder-card:hover .folder-card-image.back-2 {
-            bottom: 55%;
-        }
-        .folder-card:hover .folder-card-image.front {
-            bottom: 30%;
-        }
-        /* 文件夹信息标签 */
+        /* 文件夹信息标签 - 已移至tab显示，隐藏此元素 */
         .folder-info-label {
-            position: absolute;
-            bottom: 8%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: bold;
-            white-space: nowrap;
-            z-index: 15;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
+            display: none;
         }
         
         .folder-name {
@@ -714,10 +771,7 @@
             border-radius: 3px;
         }
         .folder-card-info {
-            margin-top: 10px;
-            text-align: center;
-            color: #aaa;
-            font-size: 0.75em;
+            display: none; /* 信息栏未使用，隐藏以消除额外空白 */
         }
         .folder-card-count {
             display: inline-block;
@@ -1111,13 +1165,13 @@
                         photoCount = countPhotosInFolder(folderPath, data);
                         images = data.filter(file => 
                             file.fullsize_path.startsWith(folderPath + '/')
-                        ).slice(0, 3);
+                        ).slice(0, 10);
                     } else {
                         // 如果是最深层文件夹
                         photoCount = countPhotosInFolder(folderPath, data);
                         images = data.filter(file => 
                             file.fullsize_path.startsWith(folderPath + '/')
-                        ).slice(0, 3);
+                        ).slice(0, 10);
                     }
                     
                     const newFilesCount = countNewFilesInFolder(folderPath, data);
@@ -1490,36 +1544,65 @@
             const folderContainer = document.createElement("div");
             folderContainer.classList.add("folder-container");
             
-            // 创建文件夹标签
+            // 创建文件夹主体
+            const folderBody = document.createElement("div");
+            folderBody.classList.add("folder-body");
+            
+            // 创建文件夹内部阴影
+            const folderInnerShadow = document.createElement("div");
+            folderInnerShadow.classList.add("folder-inner-shadow");
+            folderBody.appendChild(folderInnerShadow);
+            
+            folderContainer.appendChild(folderBody);
+            
+            // 创建文件夹标签并显示名称
             const folderTab = document.createElement("div");
             folderTab.classList.add("folder-tab");
+            folderTab.textContent = folder.name;
+            folderTab.title = folder.name; // 鼠标悬停显示完整名称
             folderContainer.appendChild(folderTab);
-            
-            // 创建文件夹顶部边缘
-            const folderTopEdge = document.createElement("div");
-            folderTopEdge.classList.add("folder-top-edge");
-            folderContainer.appendChild(folderTopEdge);
             
             imageStack.appendChild(folderContainer);
 
-            // 添加最多3张图片
-            const imagesToShow = folder.images.slice(0, 3);
-            const imageClasses = ['front', 'back-2', 'back-1'];
-            
-            imagesToShow.forEach((file, index) => {
-                const img = document.createElement("img");
-                img.classList.add("folder-card-image", imageClasses[index]);
-                img.crossOrigin = "anonymous";
-                const useRaw = file.size > 20 * 1024 * 1024;
-                const thumbUrl = useRaw
-                    ? `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`
-                    : `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.thumbnail_path}`;
-                img.src = thumbUrl;
-                img.onerror = () => {
-                    console.error("Error loading card image:", file.thumbnail_path);
-                };
-                imageStack.appendChild(img);
-            });
+            // 创建文件夹封面包装器和封面（毛玻璃效果）
+            const folderCoverWrapper = document.createElement("div");
+            folderCoverWrapper.classList.add("folder-cover-wrapper");
+            const folderCover = document.createElement("div");
+            folderCover.classList.add("folder-cover");
+            folderCoverWrapper.appendChild(folderCover);
+            imageStack.appendChild(folderCoverWrapper);
+
+            // 创建书本页面（使用最多10张图片）
+            const imagesToShow = folder.images.slice(0, 10);
+            if (imagesToShow.length > 0) {
+                // 创建书本页面容器
+                const bookPages = document.createElement("div");
+                bookPages.classList.add("book-pages");
+                
+                // 添加图片作为书页
+                imagesToShow.forEach((file, index) => {
+                    const bookPage = document.createElement("div");
+                    bookPage.classList.add("book-page");
+                    bookPage.dataset.pageIndex = index;
+                    // 设置固定的z-index：第一张图片z-index最高，最后一张最低
+                    bookPage.style.zIndex = imagesToShow.length - index;
+                    
+                    const pageImg = document.createElement("img");
+                    pageImg.crossOrigin = "anonymous";
+                    const useRaw = file.size > 20 * 1024 * 1024;
+                    const thumbUrl = useRaw
+                        ? `https://raw.githubusercontent.com/YeHang-GitHub/Texture-Reference-Photo/main/${file.thumbnail_path}`
+                        : `https://cdn.jsdelivr.net/gh/YeHang-GitHub/Texture-Reference-Photo@main/${file.thumbnail_path}`;
+                    pageImg.src = thumbUrl;
+                    pageImg.onerror = () => {
+                        console.error("Error loading page image:", file.thumbnail_path);
+                    };
+                    bookPage.appendChild(pageImg);
+                    bookPages.appendChild(bookPage);
+                });
+                
+                imageStack.appendChild(bookPages);
+            }
 
             // 添加信息标签
             const infoLabel = document.createElement("div");
@@ -1553,10 +1636,221 @@
             cardInner.appendChild(info);
             card.appendChild(cardInner);
 
-            // 点击卡片进入该文件夹
-            card.onclick = () => {
-                navigateToPath(folder.path);
+            // 点击事件：只在有效区域（下方75%）才能点击进入文件夹
+            card.onclick = (e) => {
+                const rect = imageStack.getBoundingClientRect();
+                const mouseY = e.clientY - rect.top;
+                const threshold = rect.height * 0.25;
+                
+                // 只有点击文件夹主体区域才进入
+                if (mouseY > threshold) {
+                    navigateToPath(folder.path);
+                }
             };
+            
+            // 监听imageStack的鼠标事件，但只在文件夹主体区域（下方70%）触发hover
+            let isHovering = false;
+            
+            imageStack.addEventListener('mouseenter', function(e) {
+                const rect = this.getBoundingClientRect();
+                const mouseY = e.clientY - rect.top;
+                const threshold = rect.height * 0.25; // 上方25%为空白区域
+                
+                if (mouseY > threshold) {
+                    card.classList.add('hovering');
+                    isHovering = true;
+                    
+                    // 模糊效果渐变消失
+                    const folderCover = imageStack.querySelector('.folder-cover');
+                    if (folderCover) {
+                        // 清除之前的动画和延迟定时器
+                        if (folderCover.blurAnimationId) {
+                            cancelAnimationFrame(folderCover.blurAnimationId);
+                            folderCover.blurAnimationId = null;
+                        }
+                        if (folderCover.blurDelayTimer) {
+                            clearTimeout(folderCover.blurDelayTimer);
+                            folderCover.blurDelayTimer = null;
+                        }
+                        
+                        const startBlur = folderCover.currentBlurValue !== undefined ? folderCover.currentBlurValue : 5;
+                        const targetBlur = 0;
+                        const duration = 200;
+                        const startTime = performance.now();
+                        
+                        function animateBlurOut() {
+                            const elapsed = performance.now() - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const currentBlur = startBlur + (targetBlur - startBlur) * progress;
+                            
+                            folderCover.currentBlurValue = currentBlur;
+                            folderCover.style.backdropFilter = `blur(${currentBlur}px)`;
+                            folderCover.style.webkitBackdropFilter = `blur(${currentBlur}px)`;
+                            
+                            if (progress < 1) {
+                                folderCover.blurAnimationId = requestAnimationFrame(animateBlurOut);
+                            } else {
+                                folderCover.blurAnimationId = null;
+                            }
+                        }
+                        
+                        folderCover.blurAnimationId = requestAnimationFrame(animateBlurOut);
+                    }
+                }
+            });
+            
+            imageStack.addEventListener('mousemove', function(e) {
+                const rect = this.getBoundingClientRect();
+                const mouseY = e.clientY - rect.top;
+                const threshold = rect.height * 0.25;
+                
+                // 检查是否在有效hover区域
+                if (mouseY > threshold) {
+                    if (!isHovering) {
+                        card.classList.add('hovering');
+                        isHovering = true;
+                    }
+                    
+                    // 处理翻页逻辑
+                    const bookPages = this.querySelector('.book-pages');
+                    if (!bookPages) return;
+                    
+                    const pages = Array.from(bookPages.querySelectorAll('.book-page'));
+                    if (pages.length === 0) return;
+                    
+                    const cardHeight = rect.height;
+                    
+                    // 根据鼠标垂直位置计算当前聚焦哪张图片
+                    // 鼠标越往上，查看的图片索引越大
+                    // 调整计算范围，让鼠标到顶部时能翻到最后一张
+                    const effectiveTop = cardHeight * 0.1; // 上方10%位置视为顶部
+                    const effectiveBottom = cardHeight * 0.9; // 下方90%位置视为底部
+                    const adjustedMouseY = Math.max(effectiveTop, Math.min(effectiveBottom, mouseY));
+                    const progress = 1 - (adjustedMouseY - effectiveTop) / (effectiveBottom - effectiveTop);
+                    const focusIndex = Math.floor(progress * pages.length);
+                    const clampedFocusIndex = Math.max(0, Math.min(pages.length - 1, focusIndex));
+                    
+                    // 计算第一张图片的翻页角度，用于同步cover
+                    let firstPageFlipAngle = 0; // 第一张图片的角度
+                    
+                    pages.forEach((page, index) => {
+                        if (index < clampedFocusIndex) {
+                            // 已经翻过的图片：模拟真实翻书效果
+                            // 翻过的页数（从1开始）
+                            const flippedIndex = clampedFocusIndex - index;
+                            // 第一张翻开75度，每翻一张增加2度，最大到90度
+                            const baseAngle = 75;
+                            const angleIncrement = 2;
+                            const maxAngle = 90;
+                            const flipAngle = Math.min(maxAngle, baseAngle + (flippedIndex - 1) * angleIncrement);
+                            
+                            // 记录第一张图片（index=0）的翻页角度
+                            if (index === 0) {
+                                firstPageFlipAngle = flipAngle;
+                            }
+                            
+                            // 只旋转，不做Y轴移动
+                            page.style.transform = `rotateX(-${flipAngle}deg)`;
+                            page.style.opacity = '1';
+                            page.style.boxShadow = `0 1px 3px rgba(0, 0, 0, 0.15)`;
+                    } else if (index === clampedFocusIndex) {
+                        // 当前聚焦的图片：完全平放
+                        page.style.transform = `rotateX(0deg)`;
+                        page.style.opacity = '1';
+                        page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
+                    } else {
+                        // 还未翻到的图片：压在当前图片下面
+                        const distanceFromFocus = index - clampedFocusIndex;
+                        
+                        if (distanceFromFocus <= 3) {
+                            // 紧跟当前图片的3张：略微翻起，形成下方堆叠
+                            const stackOffset = -distanceFromFocus * 6; // -6px, -12px, -18px
+                            const behindAngle = -2 - (distanceFromFocus * 2); // -4deg, -6deg, -8deg
+                            page.style.transform = `rotateX(${behindAngle}deg) translateY(${stackOffset}px) translateZ(-${distanceFromFocus * 2}px)`;
+                            page.style.opacity = '1';
+                            page.style.boxShadow = `0 1px 2px rgba(0, 0, 0, 0.1)`;
+                        } else {
+                            // 更后面的图片：都保持一致的略微翻起状态
+                            page.style.transform = `rotateX(-8deg) translateY(-18px) translateZ(-6px)`;
+                            page.style.opacity = '1';
+                            page.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
+                        }
+                    }
+                    });
+                    
+                    // 动态更新cover的角度：跟第一张图片同步旋转
+                    const folderCoverWrapper = this.querySelector('.folder-cover-wrapper');
+                    if (folderCoverWrapper) {
+                        // cover角度 = 第一张图片角度（同步旋转）
+                        const coverAngle = firstPageFlipAngle;
+                        folderCoverWrapper.style.transform = `rotateX(-${coverAngle}deg)`;
+                    }
+                }
+            });
+            
+            // 鼠标离开imageStack时重置
+            imageStack.addEventListener('mouseleave', function() {
+                card.classList.remove('hovering');
+                isHovering = false;
+                
+                // 模糊效果渐变恢复 - 需要等待cover关闭动画完成后再开始
+                const folderCover = this.querySelector('.folder-cover');
+                if (folderCover) {
+                    // 清除之前的动画和延迟定时器
+                    if (folderCover.blurAnimationId) {
+                        cancelAnimationFrame(folderCover.blurAnimationId);
+                        folderCover.blurAnimationId = null;
+                    }
+                    if (folderCover.blurDelayTimer) {
+                        clearTimeout(folderCover.blurDelayTimer);
+                        folderCover.blurDelayTimer = null;
+                    }
+                    
+                    // 等待cover关闭动画完成（CSS transition是0.6s）后再开始模糊动画
+                    folderCover.blurDelayTimer = setTimeout(() => {
+                        folderCover.blurDelayTimer = null;
+                        
+                        const startBlur = folderCover.currentBlurValue !== undefined ? folderCover.currentBlurValue : 0;
+                        const targetBlur = 5;
+                        const duration = 400;
+                        const startTime = performance.now();
+                        
+                        function animateBlurIn() {
+                            const elapsed = performance.now() - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const currentBlur = startBlur + (targetBlur - startBlur) * progress;
+                            
+                            folderCover.currentBlurValue = currentBlur;
+                            folderCover.style.backdropFilter = `blur(${currentBlur}px)`;
+                            folderCover.style.webkitBackdropFilter = `blur(${currentBlur}px)`;
+                            
+                            if (progress < 1) {
+                                folderCover.blurAnimationId = requestAnimationFrame(animateBlurIn);
+                            } else {
+                                folderCover.blurAnimationId = null;
+                            }
+                        }
+                        
+                        folderCover.blurAnimationId = requestAnimationFrame(animateBlurIn);
+                    }, 600); // 等待0.6秒，与CSS transform过渡时间一致
+                }
+                
+                const bookPages = this.querySelector('.book-pages');
+                if (!bookPages) return;
+                
+                const pages = Array.from(bookPages.querySelectorAll('.book-page'));
+                pages.forEach((page) => {
+                    page.style.transform = 'rotateX(0deg)';
+                    page.style.opacity = '1';
+                    page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
+                });
+                
+                // 重置cover的transform，让CSS transition处理关闭动画
+                const folderCoverWrapper = this.querySelector('.folder-cover-wrapper');
+                if (folderCoverWrapper) {
+                    folderCoverWrapper.style.transform = '';
+                }
+            });
 
             return card;
         }

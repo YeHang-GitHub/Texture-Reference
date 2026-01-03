@@ -346,7 +346,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
+            overflow: hidden;
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
@@ -357,84 +357,102 @@
             display: flex;
             opacity: 1;
         }
-        .modal-content {
-            margin: auto;
+        .modal.show.scrollable {
+            overflow: auto;
             display: block;
+        }
+        .modal-image-container {
+            position: relative;
+            display: inline-block;
             max-width: 80%;
             max-height: 80%;
-            transition: transform 0.2s, transform-origin 0s;
+        }
+        .modal.scrollable .modal-image-container {
+            max-width: none;
+            max-height: none;
+            display: block;
+        }
+        .modal-content {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            cursor: zoom-in;
         }
         .modal-content.enlarged {
-            transform: scale(5);
+            cursor: zoom-out;
+            max-width: none;
+            max-height: none;
         }
         .loading-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            width: 300px;
-            height: 30px;
-            border-radius: 12px;
+            justify-content: flex-start;
             z-index: 10001;
             box-shadow: none;
             padding: 0;
-            background: none; /* 移除黑色长方形背景 */
+            background: none;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.075s ease-out;
+        }
+        .loading-container.fading {
+            opacity: 0;
+        }
+        /* 放大状态下进度条固定在屏幕顶部 */
+        .loading-container.screen-top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
         }
         .progress-bar {
-            width: 90%;
-            height: 19px;
-            background: #444;
-            border-radius: 9.5px;
+            width: 100%;
+            height: 4px;
+            background: rgba(68, 68, 68, 0.8);
+            border-radius: 0;
             overflow: hidden;
             margin: 0;
             position: relative;
             display: flex;
             align-items: center;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+            box-shadow: none;
         }
         .progress-bar-inner {
-            height: 19px;
+            height: 4px;
             background: linear-gradient(90deg, #4db8ff 0%, #3498db 100%);
-            border-radius: 9.5px;
+            border-radius: 0;
             width: 0%;
-            transition: width 0.2s;
+            transition: width 0.15s;
             position: absolute;
             left: 0;
             top: 0;
             z-index: 1;
         }
         .progress-text {
-            color: #fff;
-            font-size: 0.98em;
-            font-weight: 500;
-            text-align: left;
-            position: absolute;
-            left: 12px;
-            z-index: 2;
-            background: transparent;
-            pointer-events: none;
-            letter-spacing: 0.02em;
-            opacity: 0.95;
-            line-height: 19px;
+            display: none;
         }
         .progress-size {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #fff; /* 改为默认白色 */
-            font-size: 0.93em;
-            font-weight: 400;
-            pointer-events: none;
-            z-index: 2;
-            background: transparent;
-            opacity: 0.92;
-            letter-spacing: 0.01em;
-            line-height: 19px;
+            display: none;
+        }
+        /* 模态框图片容器 */
+        .modal-image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 80%;
+            max-height: 80%;
+        }
+        .modal-content {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            transition: transform 0.2s, transform-origin 0s;
         }
         .error-message {
             position: fixed;
@@ -796,7 +814,7 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
             transform-origin: center 100%;
             transform-style: preserve-3d;
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), filter 0.3s ease;
             overflow: hidden;
             opacity: 1;
             border: 1.5px solid rgb(224, 224, 224);
@@ -922,14 +940,14 @@
     </div>
     <div id="error-message" class="error-message"></div>
     <div id="myModal" class="modal">
-        <div class="loading-container" id="loading-container" style="display:none;">
-            <div class="progress-bar">
-                <div class="progress-bar-inner" id="progress-bar-inner"></div>
-                <span class="progress-text" id="progress-text">Loading... 0 MB</span>
-                <span class="progress-size" id="progress-size"></span>
+        <div class="modal-image-container" id="modal-image-container">
+            <div class="loading-container" id="loading-container" style="display:none;">
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="progress-bar-inner"></div>
+                </div>
             </div>
+            <img class="modal-content" id="img01">
         </div>
-        <img class="modal-content" id="img01">
     </div>
     <div id="info-modal">
         <button id="info-modal-close">✖</button>
@@ -1375,6 +1393,10 @@
             }, 150);
         });
 
+        // 跟踪当前正在加载的请求
+        let currentImageLoadXhr = null;
+        let currentImageLoadId = 0;
+
         // 新增：通过 XMLHttpRequest 加载图片，并逐步回调进度
         function loadImageWithProgress(url, onProgress, onComplete, onError) {
             const xhr = new XMLHttpRequest();
@@ -1427,6 +1449,7 @@
                 onError(new Error("XHR error"));
             };
             xhr.send();
+            return xhr;
         }
 
         // 供文件树使用：显示指定文件夹的图片
@@ -1525,38 +1548,66 @@
                 aEl.appendChild(wrapper);
                 waterfall.appendChild(aEl);
 
-                // 新增：点击时显示进度条并加载图片
+                // 新增：点击时先显示缩略图，然后显示进度条并加载原图
                 aEl.onclick = (e) => {
                     e.preventDefault();
                     const modal = document.getElementById("myModal");
                     const modalImg = document.getElementById("img01");
+                    const modalContainer = document.getElementById("modal-image-container");
                     const loadingContainer = document.getElementById("loading-container");
                     const progressBar = document.getElementById("progress-bar-inner");
-                    const progressText = document.getElementById("progress-text");
-                    const progressSize = document.getElementById("progress-size");
                     
-                    // 新增：清空之前的图片，避免显示上一次的图片
+                    // 取消之前的加载请求
+                    if (currentImageLoadXhr) {
+                        currentImageLoadXhr.abort();
+                        currentImageLoadXhr = null;
+                    }
+                    
+                    // 生成新的加载ID
+                    const loadId = ++currentImageLoadId;
+                    
+                    // 先清空之前的图片，避免显示上一张图片
                     modalImg.src = "";
-                    modalImg.style.display = "none";
                     
-                    loadingContainer.style.display = "flex";
+                    // 直接从 file 对象获取原图尺寸（来自 JSON 数据）
+                    modalImg.dataset.fullWidth = file.width || 0;
+                    modalImg.dataset.fullHeight = file.height || 0;
+                    
+                    // 使用canvas将缩略图转为dataURL，避免重新加载
+                    const canvas = document.createElement("canvas");
+                    canvas.width = imgEl.naturalWidth;
+                    canvas.height = imgEl.naturalHeight;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(imgEl, 0, 0);
+                    const thumbDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                    
+                    // 立即显示缩略图
+                    modalImg.src = thumbDataUrl;
+                    modalImg.style.display = "block";
                     modal.classList.add("show");
+                    
+                    // 显示进度条
+                    loadingContainer.style.display = "flex";
                     progressBar.style.width = "0%";
-                    progressText.textContent = "Loading... 0 MB";
-                    // 设置文件大小（MB，保留两位小数）
-                    const mb = file.size ? (file.size / 1024 / 1024).toFixed(2) : "?";
-                    progressSize.textContent = mb + " MB";
-                    loadImageWithProgress(fullsizeUrl, file.size, (loadedMB, loaded, total) => {
-                        progressBar.style.width = total ? ((loaded / total) * 100).toFixed(1) + "%" : "0%";
-                        progressText.textContent = "Loading... " + loadedMB.toFixed(2) + " MB";
+                    
+                    // 加载原图
+                    currentImageLoadXhr = loadImageWithProgress(fullsizeUrl, file.size, (loadedMB, loaded, total) => {
+                        // 只有当前请求才更新进度条
+                        if (loadId !== currentImageLoadId) return;
+                        const percent = total ? ((loaded / total) * 100) : (file.size ? ((loaded / file.size) * 100) : 0);
+                        progressBar.style.width = Math.min(percent, 100).toFixed(1) + "%";
                     }, blob => {
+                        // 只有当前请求才更新图片
+                        if (loadId !== currentImageLoadId) return;
                         const url = URL.createObjectURL(blob);
                         modalImg.src = url;
-                        modalImg.style.display = "block";
                         loadingContainer.style.display = "none";
+                        currentImageLoadXhr = null;
                     }, err => {
-                        progressText.textContent = "Load failed";
-                        progressBar.style.width = "0%";
+                        // 只有当前请求才处理错误
+                        if (loadId !== currentImageLoadId) return;
+                        loadingContainer.style.display = "none";
+                        currentImageLoadXhr = null;
                         console.error("Image load error", err);
                     });
                 };
@@ -1747,6 +1798,9 @@
                     bookPage.dataset.pageIndex = index;
                     // 设置固定的z-index：第一张图片z-index最高，最后一张最低
                     bookPage.style.zIndex = imagesToShow.length - index;
+                    // 为每个书页添加随机旋转角度（-1.5到1.5度之间）
+                    const randomRotation = (Math.random() - 0.5) * 3;
+                    bookPage.dataset.randomRotation = randomRotation;
                     
                     // 创建加载动画
                     const loadingDiv = document.createElement("div");
@@ -1905,6 +1959,9 @@
                     let firstPageFlipAngle = 0; // 第一张图片的角度
                     
                     pages.forEach((page, index) => {
+                        // 获取该页的随机旋转角度
+                        const randomRotation = parseFloat(page.dataset.randomRotation) || 0;
+                        
                         if (index < clampedFocusIndex) {
                             // 已经翻过的图片：模拟真实翻书效果
                             // 翻过的页数（从1开始）
@@ -1920,14 +1977,16 @@
                                 firstPageFlipAngle = flipAngle;
                             }
                             
-                            // 只旋转，不做Y轴移动
-                            page.style.transform = `rotateX(-${flipAngle}deg)`;
+                            // 旋转并添加随机Z轴旋转
+                            page.style.transform = `rotateX(-${flipAngle}deg) rotateZ(${randomRotation}deg)`;
                             page.style.opacity = '1';
+                            page.style.filter = 'brightness(0.7)';
                             page.style.boxShadow = `0 1px 3px rgba(0, 0, 0, 0.15)`;
                     } else if (index === clampedFocusIndex) {
-                        // 当前聚焦的图片：完全平放
-                        page.style.transform = `rotateX(0deg)`;
+                        // 当前聚焦的图片：完全平放，带随机旋转，保持正常亮度
+                        page.style.transform = `rotateX(0deg) rotateZ(${randomRotation}deg)`;
                         page.style.opacity = '1';
+                        page.style.filter = 'brightness(1)';
                         page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
                     } else {
                         // 还未翻到的图片：压在当前图片下面
@@ -1937,13 +1996,15 @@
                             // 紧跟当前图片的3张：略微翻起，形成下方堆叠
                             const stackOffset = -distanceFromFocus * 6; // -6px, -12px, -18px
                             const behindAngle = -2 - (distanceFromFocus * 2); // -4deg, -6deg, -8deg
-                            page.style.transform = `rotateX(${behindAngle}deg) translateY(${stackOffset}px) translateZ(-${distanceFromFocus * 2}px)`;
+                            page.style.transform = `rotateX(${behindAngle}deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px) translateZ(-${distanceFromFocus * 2}px)`;
                             page.style.opacity = '1';
+                            page.style.filter = 'brightness(0.8)';
                             page.style.boxShadow = `0 1px 2px rgba(0, 0, 0, 0.1)`;
                         } else {
                             // 更后面的图片：都保持一致的略微翻起状态
-                            page.style.transform = `rotateX(-8deg) translateY(-18px) translateZ(-6px)`;
+                            page.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(-18px) translateZ(-6px)`;
                             page.style.opacity = '1';
+                            page.style.filter = 'brightness(0.8)';
                             page.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
                         }
                     }
@@ -2013,6 +2074,7 @@
                 pages.forEach((page) => {
                     page.style.transform = 'rotateX(0deg)';
                     page.style.opacity = '1';
+                    page.style.filter = 'brightness(1)';
                     page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
                 });
                 
@@ -2059,22 +2121,108 @@
 
             const modal = document.getElementById("myModal");
             const modalImg = document.getElementById("img01");
+            const modalContainer = document.getElementById("modal-image-container");
+
+            // ESC键关闭模态框
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('show')) {
+                    modal.classList.remove("show");
+                    modal.classList.remove("scrollable");
+                    modalImg.classList.remove("enlarged");
+                    document.getElementById("loading-container").classList.remove("screen-top");
+                }
+            });
 
             modal.onclick = (event) => {
-                if (event.target !== modalImg) {
+                // 只有点击模态框背景（不是图片或容器）时才关闭
+                if (event.target === modal) {
                     modal.classList.remove("show");
+                    modal.classList.remove("scrollable");
                     modalImg.classList.remove("enlarged");
+                    // 重置进度条位置
+                    document.getElementById("loading-container").classList.remove("screen-top");
                 }
             };
 
             modalImg.onclick = (event) => {
+                event.stopPropagation();
+                
                 const rect = modalImg.getBoundingClientRect();
-                const offsetX = event.clientX - rect.left;
-                const offsetY = event.clientY - rect.top;
-                const originX = (offsetX / rect.width) * 100;
-                const originY = (offsetY / rect.height) * 100;
-                modalImg.style.transformOrigin = `${originX}% ${originY}%`;
-                modalImg.classList.toggle("enlarged");
+                const clickX = event.clientX - rect.left;
+                const clickY = event.clientY - rect.top;
+                const percentX = clickX / rect.width;
+                const percentY = clickY / rect.height;
+                
+                if (!modalImg.classList.contains("enlarged")) {
+                    // ========== 放大 ==========
+                    const container = document.querySelector(".modal-image-container");
+                    
+                    // 获取图片尺寸：优先使用存储的原图尺寸，否则使用当前图片的 naturalWidth/Height
+                    const fullWidth = modalImg.dataset.fullWidth ? parseInt(modalImg.dataset.fullWidth) : modalImg.naturalWidth;
+                    const fullHeight = modalImg.dataset.fullHeight ? parseInt(modalImg.dataset.fullHeight) : modalImg.naturalHeight;
+                    
+                    // 计算点击位置在原图中的坐标
+                    const clickPosX = percentX * fullWidth;
+                    const clickPosY = percentY * fullHeight;
+                    
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // 计算理想的滚动位置（让点击位置居中）
+                    let scrollX = clickPosX - viewportWidth / 2;
+                    let scrollY = clickPosY - viewportHeight / 2;
+                    
+                    // 限制滚动范围，不超出图片边界
+                    const maxScrollX = Math.max(0, fullWidth - viewportWidth);
+                    const maxScrollY = Math.max(0, fullHeight - viewportHeight);
+                    scrollX = Math.max(0, Math.min(scrollX, maxScrollX));
+                    scrollY = Math.max(0, Math.min(scrollY, maxScrollY));
+                    
+                    // 设置图片为原图尺寸
+                    modalImg.style.width = fullWidth + 'px';
+                    modalImg.style.height = fullHeight + 'px';
+                    
+                    // 直接切换到放大状态
+                    container.style.padding = '0';
+                    modalImg.classList.add("enlarged");
+                    modal.classList.add("scrollable");
+                    
+                    // 滚动到点击位置
+                    requestAnimationFrame(() => {
+                        modal.scrollTo({
+                            left: scrollX,
+                            top: scrollY,
+                            behavior: 'instant'
+                        });
+                    });
+                } else {
+                    // ========== 缩小 ==========
+                    const container = document.querySelector(".modal-image-container");
+                    container.style.padding = "";
+                    // 移除固定尺寸，让图片回到自由缩放状态
+                    modalImg.style.width = '';
+                    modalImg.style.height = '';
+                    modalImg.classList.remove("enlarged");
+                    modal.classList.remove("scrollable");
+                }
+                
+                // 切换进度条位置，使用淡入淡出效果
+                const loadingContainer = document.getElementById("loading-container");
+                if (modalImg.classList.contains("enlarged")) {
+                    // 放大时：先淡出，切换位置，再淡入
+                    loadingContainer.classList.add("fading");
+                    setTimeout(() => {
+                        loadingContainer.classList.add("screen-top");
+                        loadingContainer.classList.remove("fading");
+                    }, 175);
+                } else {
+                    // 缩小时：先淡出，切换位置，再淡入
+                    loadingContainer.classList.add("fading");
+                    setTimeout(() => {
+                        loadingContainer.classList.remove("screen-top");
+                        loadingContainer.classList.remove("fading");
+                    }, 175);
+                }
             };
 
             document.getElementById("info-button").addEventListener("click", () => {

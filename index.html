@@ -168,10 +168,15 @@
             margin-bottom: 20px;
             font-size: 1em;
             color: #aaa;
+            position: relative;
+            z-index: 10;
         }
         #breadcrumb .breadcrumb-item {
             cursor: pointer;
             transition: color 0.2s;
+            padding: 4px 2px;
+            position: relative;
+            z-index: 10;
         }
         #breadcrumb .breadcrumb-item:hover {
             color: #4db8ff;
@@ -180,25 +185,37 @@
             margin: 0 10px;
             color: #666;
         }
-        /* 显示所有照片开关 */
+        /* Show All 按钮 */
+        .show-all-btn {
+            margin-left: 20px;
+            padding: 4px 12px;
+            background-color: #333;
+            border: 1px solid #555;
+            border-radius: 12px;
+            color: #666;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+            z-index: 10;
+        }
+        .show-all-btn:hover {
+            background-color: #3a3a3a;
+            border-color: #666;
+        }
+        .show-all-btn.active {
+            background-color: #4db8ff;
+            border-color: #4db8ff;
+            color: #fff;
+        }
+        .show-all-btn.active:hover {
+            background-color: #3aa8ef;
+            border-color: #3aa8ef;
+        }
+        /* 隐藏原来的开关容器（已移动到面包屑） */
         #show-all-toggle {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 10px;
-        }
-        #show-all-toggle label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: #aaa;
-            font-size: 0.9em;
-        }
-        #show-all-toggle input[type="checkbox"] {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
+            display: none;
         }
         /* 分割线 */
         .section-divider {
@@ -246,6 +263,8 @@
             width: 100%;
             margin-bottom: 20px;
             margin-top: -30px; /* 补偿第一行的上方空白 */
+            position: relative;
+            z-index: 1; /* 低于面包屑的 z-index */
         }
         /* 右侧画廊：自适应宽度，并独立垂直滚动 */
         #gallery {
@@ -929,10 +948,7 @@
         <div id="right-content">
             <div id="breadcrumb"></div>
             <div id="show-all-toggle">
-                <label>
-                    <input type="checkbox" id="show-all-photos">
-                    <span>显示所有子文件夹的照片</span>
-                </label>
+                <input type="checkbox" id="show-all-photos">
             </div>
             <div id="main-view"></div>
             <div id="gallery"></div>
@@ -1637,6 +1653,32 @@
                     breadcrumb.appendChild(separator);
                 }
             });
+            
+            // 检查当前路径是否有子文件夹
+            const folders = getFoldersAtPath(currentPath, currentData);
+            const hasSubfolders = folders.length > 0;
+            
+            // 只有当有子文件夹时才显示 Show All 按钮
+            if (hasSubfolders) {
+                const btn = document.createElement("button");
+                btn.classList.add("show-all-btn");
+                btn.textContent = "Show All";
+                btn.type = "button";
+                if (showAllPhotos) {
+                    btn.classList.add("active");
+                }
+                
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showAllPhotos = !showAllPhotos;
+                    this.classList.toggle("active", showAllPhotos);
+                    document.getElementById("show-all-photos").checked = showAllPhotos;
+                    updateImagesOnly();
+                });
+                
+                breadcrumb.appendChild(btn);
+            }
         }
 
         // 导航到指定路径
@@ -1731,6 +1773,23 @@
             }
             
             // 显示图片
+            if (images.length > 0) {
+                displayImagesInGallery(images);
+            }
+        }
+        
+        // 只更新图片区域（用于 Show All 切换）
+        function updateImagesOnly() {
+            const gallery = document.getElementById("gallery");
+            gallery.innerHTML = "";
+            
+            let images;
+            if (showAllPhotos) {
+                images = getAllImagesUnderPath(currentPath, currentData);
+            } else {
+                images = getImagesAtPath(currentPath, currentData);
+            }
+            
             if (images.length > 0) {
                 displayImagesInGallery(images);
             }

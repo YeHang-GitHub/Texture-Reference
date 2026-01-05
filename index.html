@@ -811,7 +811,7 @@
         /* 书本页面容器 - 在中上部区域 */
         .book-pages {
             position: absolute;
-            top: 37%;
+            top: calc(37% + 6px);
             left: calc(3.5% + 2px);
             width: 90%;
             height: 58%;
@@ -840,6 +840,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            /* 默认显示堆叠效果 */
+            transform: rotateX(-8deg);
+            filter: brightness(0.9);
         }
         
         /* 书页加载动画 */
@@ -1852,6 +1855,20 @@
                     // 为每个书页添加随机旋转角度（-1.5到1.5度之间）
                     const randomRotation = (Math.random() - 0.5) * 3;
                     bookPage.dataset.randomRotation = randomRotation;
+                    // 计算每张图片的向上偏移量（前3张有间距，后面的都重叠在一起，匹配hover效果）
+                    let stackOffset;
+                    if (index <= 3) {
+                        stackOffset = -index * 6; // 前3张：0, -6px, -12px, -18px
+                    } else {
+                        stackOffset = -18; // 后面的都是-18px
+                    }
+                    bookPage.dataset.stackOffset = stackOffset;
+                    // 计算每张图片的亮度（第一张正常，越往下越暗，模拟阴影）
+                    const brightness = index === 0 ? 1 : Math.max(0.3, 1 - index * 0.3);
+                    bookPage.dataset.defaultBrightness = brightness;
+                    // 应用初始堆叠效果的transform（包含随机旋转和向上偏移）
+                    bookPage.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px)`;
+                    bookPage.style.filter = `brightness(${brightness})`;
                     
                     // 创建加载动画
                     const loadingDiv = document.createElement("div");
@@ -1998,9 +2015,9 @@
                     
                     // 根据鼠标垂直位置计算当前聚焦哪张图片
                     // 鼠标越往上，查看的图片索引越大
-                    // 调整计算范围，让鼠标到顶部时能翻到最后一张
-                    const effectiveTop = cardHeight * 0.3; // 上方0%位置视为顶部
-                    const effectiveBottom = cardHeight * 1; // 下方90%位置视为底部
+                    // 翻动范围从有效区域顶部（threshold）到底部
+                    const effectiveTop = cardHeight * 0.25; // 有效区域顶部
+                    const effectiveBottom = cardHeight; // 底部
                     const adjustedMouseY = Math.max(effectiveTop, Math.min(effectiveBottom, mouseY));
                     const progress = 1 - (adjustedMouseY - effectiveTop) / (effectiveBottom - effectiveTop);
                     const focusIndex = Math.floor(progress * pages.length);
@@ -2033,32 +2050,32 @@
                             page.style.opacity = '1';
                             page.style.filter = 'brightness(0.7)';
                             page.style.boxShadow = `0 1px 3px rgba(0, 0, 0, 0.15)`;
-                    } else if (index === clampedFocusIndex) {
-                        // 当前聚焦的图片：完全平放，带随机旋转，保持正常亮度
-                        page.style.transform = `rotateX(0deg) rotateZ(${randomRotation}deg)`;
-                        page.style.opacity = '1';
-                        page.style.filter = 'brightness(1)';
-                        page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
-                    } else {
-                        // 还未翻到的图片：压在当前图片下面
-                        const distanceFromFocus = index - clampedFocusIndex;
-                        
-                        if (distanceFromFocus <= 3) {
-                            // 紧跟当前图片的3张：略微翻起，形成下方堆叠
-                            const stackOffset = -distanceFromFocus * 6; // -6px, -12px, -18px
-                            const behindAngle = -2 - (distanceFromFocus * 2); // -4deg, -6deg, -8deg
-                            page.style.transform = `rotateX(${behindAngle}deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px) translateZ(-${distanceFromFocus * 2}px)`;
+                        } else if (index === clampedFocusIndex) {
+                            // 当前聚焦的图片：完全平放，带随机旋转，保持正常亮度
+                            page.style.transform = `rotateX(0deg) rotateZ(${randomRotation}deg)`;
                             page.style.opacity = '1';
-                            page.style.filter = 'brightness(0.8)';
-                            page.style.boxShadow = `0 1px 2px rgba(0, 0, 0, 0.1)`;
+                            page.style.filter = 'brightness(1)';
+                            page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
                         } else {
-                            // 更后面的图片：都保持一致的略微翻起状态
-                            page.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(-18px) translateZ(-6px)`;
-                            page.style.opacity = '1';
-                            page.style.filter = 'brightness(0.8)';
-                            page.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
+                            // 还未翻到的图片：压在当前图片下面
+                            const distanceFromFocus = index - clampedFocusIndex;
+                            
+                            if (distanceFromFocus <= 3) {
+                                // 紧跟当前图片的3张：略微翻起，形成下方堆叠
+                                const stackOffset = -distanceFromFocus * 6; // -6px, -12px, -18px
+                                const behindAngle = -2 - (distanceFromFocus * 2); // -4deg, -6deg, -8deg
+                                page.style.transform = `rotateX(${behindAngle}deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px) translateZ(-${distanceFromFocus * 2}px)`;
+                                page.style.opacity = '1';
+                                page.style.filter = 'brightness(0.8)';
+                                page.style.boxShadow = `0 1px 2px rgba(0, 0, 0, 0.1)`;
+                            } else {
+                                // 更后面的图片：都保持一致的略微翻起状态
+                                page.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(-18px) translateZ(-6px)`;
+                                page.style.opacity = '1';
+                                page.style.filter = 'brightness(0.8)';
+                                page.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
+                            }
                         }
-                    }
                     });
                     
                     // 动态更新cover的角度：跟第一张图片同步旋转
@@ -2123,9 +2140,13 @@
                 
                 const pages = Array.from(bookPages.querySelectorAll('.book-page'));
                 pages.forEach((page) => {
-                    page.style.transform = 'rotateX(0deg)';
+                    // 重置为默认堆叠状态
+                    const randomRotation = parseFloat(page.dataset.randomRotation) || 0;
+                    const stackOffset = parseFloat(page.dataset.stackOffset) || 0;
+                    const defaultBrightness = parseFloat(page.dataset.defaultBrightness) || 0.9;
+                    page.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px)`;
                     page.style.opacity = '1';
-                    page.style.filter = 'brightness(1)';
+                    page.style.filter = `brightness(${defaultBrightness})`;
                     page.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.15)';
                 });
                 

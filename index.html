@@ -1764,14 +1764,6 @@
                 mainView.appendChild(card);
             });
             
-            // 如果有图片，显示分割线和图片
-            if (images.length > 0 && folders.length > 0) {
-                const divider = document.createElement("hr");
-                divider.classList.add("section-divider");
-                divider.style.gridColumn = "1 / -1";
-                mainView.appendChild(divider);
-            }
-            
             // 显示图片
             if (images.length > 0) {
                 displayImagesInGallery(images);

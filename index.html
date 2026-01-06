@@ -1864,7 +1864,7 @@
                     }
                     bookPage.dataset.stackOffset = stackOffset;
                     // 计算每张图片的亮度（第一张正常，越往下越暗，模拟阴影）
-                    const brightness = index === 0 ? 1 : Math.max(0.3, 1 - index * 0.3);
+                    const brightness = index === 0 ? 1 : Math.max(0.25, 1 - index * 0.22);
                     bookPage.dataset.defaultBrightness = brightness;
                     // 应用初始堆叠效果的transform（包含随机旋转和向上偏移）
                     bookPage.style.transform = `rotateX(-8deg) rotateZ(${randomRotation}deg) translateY(${stackOffset}px)`;

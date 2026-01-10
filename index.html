@@ -327,16 +327,60 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* NEW 标记样式（文件夹） - 红色胶囊形 */
+        /* NEW 标记样式（文件夹和文件树通用） - 圆形/胶囊自适应 */
         .new-badge {
             background: #ff3b30;
             color: white;
-            font-size: 0.65em;
+            font-size: 11px;
             font-weight: bold;
             margin-left: 8px;
-            padding: 3px 7px;
-            border-radius: 3px;
-            box-shadow: 0 2px 4px rgba(255, 59, 48, 0.3);
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        /* 个位数时用圆形 */
+        .new-badge.single-digit {
+            width: 18px;
+            min-width: 18px;
+            padding: 0;
+        }
+        /* iPhone 风格圆形数字徽章（文件夹cover左上角，跟随cover翻动） */
+        .folder-new-count-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            min-width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, rgba(245, 70, 55, 0.93) 0%, rgba(235, 55, 45, 0.9) 100%);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-shadow: 
+                0 1px 16px rgba(255, 59, 48, 1),
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        /* 个位数时用圆形 */
+        .folder-new-count-badge.single-digit {
+            width: 18px;
+            min-width: 18px;
+            padding: 0;
         }
         /* NEW 角标样式（图片） - 显示 NEW 文字 */
         .image-wrapper {
@@ -906,6 +950,224 @@
             font-size: 0.6em;
             padding: 2px 5px;
         }
+
+        /* 上传弹窗样式 */
+        #upload-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            color: white;
+            padding: 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            width: 500px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .upload-modal-content {
+            padding: 30px;
+            position: relative;
+        }
+        .upload-modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .upload-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        .upload-modal-close:hover {
+            color: #ff4444;
+        }
+        .upload-form-group {
+            margin-bottom: 20px;
+        }
+        .upload-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        .upload-form-group select,
+        .upload-form-group input[type="text"],
+        .upload-form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #555;
+            border-radius: 8px;
+            background-color: #444;
+            color: white;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .upload-form-group select:focus,
+        .upload-form-group input[type="text"]:focus,
+        .upload-form-group textarea:focus {
+            outline: none;
+            border-color: #4db8ff;
+        }
+        .upload-form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .upload-dropzone {
+            border: 3px dashed #555;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #3a3a3a;
+        }
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: #4db8ff;
+            background-color: #404040;
+        }
+        .upload-dropzone i {
+            font-size: 3em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .upload-dropzone p {
+            margin: 0;
+            color: #888;
+        }
+        .upload-dropzone.has-file {
+            border-color: #4db8ff;
+            border-style: solid;
+        }
+        .upload-preview {
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+        .upload-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .upload-preview .file-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #aaa;
+            text-align: center;
+        }
+        .upload-progress {
+            display: none;
+            margin-top: 15px;
+        }
+        .upload-progress-bar {
+            height: 8px;
+            background-color: #555;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .upload-progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #4db8ff, #3498db);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .upload-progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .upload-submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4db8ff, #3498db);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .upload-submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(77, 184, 255, 0.4);
+        }
+        .upload-submit-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .upload-success {
+            text-align: center;
+            padding: 20px;
+        }
+        .upload-success i {
+            font-size: 4em;
+            color: #4caf50;
+            margin-bottom: 15px;
+        }
+        .upload-success h3 {
+            color: #4caf50;
+            margin-bottom: 10px;
+        }
+        .upload-success p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .upload-success .uploaded-url {
+            background: #444;
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 0.85em;
+            color: #4db8ff;
+            margin-bottom: 20px;
+        }
+        .upload-another-btn {
+            padding: 12px 30px;
+            background: #555;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .upload-another-btn:hover {
+            background: #666;
+        }
+        .upload-modal-close-btn {
+            padding: 12px 30px;
+            background: #4db8ff;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .upload-modal-close-btn:hover {
+            background: #3aa8ef;
+        }
+        .upload-error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #ff6b6b;
+            display: none;
+        }
     </style>
     <!-- 修改：更新 Fancybox CSS 引入地址 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
@@ -966,6 +1228,27 @@
                 </div>
             </div>
             <img class="modal-content" id="img01">
+        </div>
+    </div>
+    <!-- 上传弹窗 -->
+    <div id="upload-modal">
+        <div class="upload-modal-content">
+            <button class="upload-modal-close" id="upload-modal-close">✖</button>
+            <h2>📤 Submit Texture</h2>
+            <p style="text-align: center; color: #aaa; margin-bottom: 15px; font-size: 0.9em;">Upload your texture via Google Form (Google sign-in may be required)</p>
+            
+            <iframe 
+                id="upload-google-form-iframe"
+                src="https://docs.google.com/forms/d/e/1FAIpQLSem5hvRuyTRWMcd1_B8oNbd-omd6ZC7R2dXEhuegVMmhfK3mA/viewform?embedded=true" 
+                width="100%" 
+                height="600" 
+                frameborder="0" 
+                style="border-radius: 8px; background: #fff;">
+            </iframe>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="upload-modal-close-btn" id="upload-close-btn">Close</button>
+            </div>
         </div>
     </div>
     <div id="info-modal">
@@ -1181,13 +1464,6 @@
                     countSpan.textContent = photoCount;
                     rightSide.appendChild(countSpan);
 
-                    if (newFilesCount > 0) {
-                        const newBadge = document.createElement("span");
-                        newBadge.classList.add("new-badge");
-                        newBadge.textContent = `${newFilesCount} NEW`;
-                        rightSide.appendChild(newBadge);
-                    }
-
                     item.appendChild(folderName);
                     item.appendChild(rightSide);
 
@@ -1284,15 +1560,31 @@
                     if (hasSubfolders) {
                         // 如果有子文件夹，统计所有子文件夹的图片
                         photoCount = countPhotosInFolder(folderPath, data);
-                        images = data.filter(file => 
+                        // 获取文件夹内的图片，新图片排在前面
+                        const folderImages = data.filter(file => 
                             file.fullsize_path.startsWith(folderPath + '/')
-                        ).slice(0, 10);
+                        );
+                        // 新图片优先排序：is_new 为 true 的排在前面
+                        folderImages.sort((a, b) => {
+                            if (a.is_new && !b.is_new) return -1;
+                            if (!a.is_new && b.is_new) return 1;
+                            return 0;
+                        });
+                        images = folderImages.slice(0, 10);
                     } else {
                         // 如果是最深层文件夹
                         photoCount = countPhotosInFolder(folderPath, data);
-                        images = data.filter(file => 
+                        // 获取文件夹内的图片，新图片排在前面
+                        const folderImages = data.filter(file => 
                             file.fullsize_path.startsWith(folderPath + '/')
-                        ).slice(0, 10);
+                        );
+                        // 新图片优先排序：is_new 为 true 的排在前面
+                        folderImages.sort((a, b) => {
+                            if (a.is_new && !b.is_new) return -1;
+                            if (!a.is_new && b.is_new) return 1;
+                            return 0;
+                        });
+                        images = folderImages.slice(0, 10);
                     }
                     
                     const newFilesCount = countNewFilesInFolder(folderPath, data);
@@ -1835,6 +2127,18 @@
             folderCoverWrapper.classList.add("folder-cover-wrapper");
             const folderCover = document.createElement("div");
             folderCover.classList.add("folder-cover");
+            
+            // 如果有新文件，添加iPhone风格的圆形数字徽章到cover上
+            if (folder.newFilesCount > 0) {
+                const newCountBadge = document.createElement("div");
+                newCountBadge.classList.add("folder-new-count-badge");
+                if (folder.newFilesCount < 10) {
+                    newCountBadge.classList.add("single-digit");
+                }
+                newCountBadge.textContent = folder.newFilesCount;
+                folderCover.appendChild(newCountBadge);
+            }
+            
             folderCoverWrapper.appendChild(folderCover);
             imageStack.appendChild(folderCoverWrapper);
 
@@ -2163,6 +2467,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             const data = await fetchJsonData(jsonUrl);
             currentData = data;
+            window.globalData = data; // 存储为全局变量供上传模块使用
 
             // 创建文件树
             const fileTree = document.getElementById("file-tree");
@@ -2305,6 +2610,15 @@
                 document.getElementById("info-modal").style.display = "none";
             });
 
+            // Upload button - 直接在新窗口打开 Google Form
+            document.getElementById("upload-button").addEventListener("click", () => {
+                window.open('https://docs.google.com/forms/d/e/1FAIpQLSem5hvRuyTRWMcd1_B8oNbd-omd6ZC7R2dXEhuegVMmhfK3mA/viewform', '_blank');
+            });
+
+            document.getElementById("upload-modal-close").addEventListener("click", () => {
+                document.getElementById("upload-modal").style.display = "none";
+            });
+
             document.getElementById("support-button").addEventListener("click", () => {
                 document.getElementById("support-modal").style.display = "block";
             });
@@ -2359,10 +2673,7 @@
                 bitcoinPreview.style.display = "none";
             });
 
-            document.getElementById("upload-button").addEventListener("click", () => {
-                window.open("https://forms.gle/p6My2uknyRNDwBDN6", "_blank");
-            });
-
+            // Upload button hover effects (click event handled by upload modal script)
             const uploadButton = document.getElementById("upload-button");
             const uploadTooltip = document.getElementById("upload-tooltip");
 
@@ -2391,6 +2702,45 @@
           Toolbar: false,  // 禁用右上角工具栏
           preload: 0,     // 禁用预加载
       });
+    </script>
+
+    <script>
+    // 上传弹窗功能 - 只使用 Google Form
+    (function initUploadModal() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUpload);
+        } else {
+            setupUpload();
+        }
+        
+        function setupUpload() {
+            const uploadModal = document.getElementById('upload-modal');
+            const uploadCloseBtn = document.getElementById('upload-close-btn');
+            
+            // ESC 关闭弹窗
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && uploadModal.style.display === 'block') {
+                    uploadModal.style.display = 'none';
+                }
+            });
+            
+            // 点击弹窗外部关闭
+            uploadModal.addEventListener('click', (e) => {
+                if (e.target === uploadModal) {
+                    uploadModal.style.display = 'none';
+                }
+            });
+            
+            // 绑定 Close 按钮
+            if (uploadCloseBtn) {
+                uploadCloseBtn.addEventListener('click', () => {
+                    uploadModal.style.display = 'none';
+                });
+            }
+            
+            console.log('Upload modal initialized successfully');
+        }
+    })();
     </script>
 
 </body>
